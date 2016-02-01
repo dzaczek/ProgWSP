@@ -10,7 +10,7 @@
 #include <cmath>
 using namespace std;
 
-#define NUM_THREADS     1
+#define NUM_THREADS     10
 #define SIZE_ARRAY    256
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
@@ -47,8 +47,9 @@ void *THE_FUNCTION(void *threadarg)
     int numerprzedzialu=(vectorint[sek] * ilosc_przedzialow-1)/zakres_liczb;
     //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
     //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl; 
-    if(numerprzedzialu<ilosc_przedzialow && numerprzedzialu>=0){
     wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
+    if(numerprzedzialu<ilosc_przedzialow && numerprzedzialu>=0){
+   // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
     // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
     }
     else
@@ -63,7 +64,7 @@ void *THE_FUNCTION(void *threadarg)
    cout << "\t\t TID:"<<my_data->thread_id<<"\n\t\tPrzedzial Rozmiar" <<PRZEDZIAL_rozmiar<<"\n\t\tPrzedzial MIN: "<<PRZEDZIAL_zakres_min<<"\n\t\t Przedzial MAKS: "<<PRZEDZIAL_zakres_maks<<"\n"<<endl;
    cout << "\t\tilosc_losowan->"<<ilosc_losowan<<endl;
    cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
-   pthread_exit(NULL);
+  // pthread_exit(NULL);
 }
 
 //losujemy liczbe z zakresu
@@ -201,11 +202,15 @@ int main ()
          exit(-1);
 
       }
-    pthread_detach(threads[i]);      
+    //pthread_detach(threads[i]);      
    }
+   pthread_exit(NULL);
    cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file("Nwatek.txt");
-   //pthread_exit(NULL);
+   
+
+
+
     for (int i = 0; i < size_histogram; i++) {
         cout<< i<<"->"<<histogram[i]<<endl;
   }
