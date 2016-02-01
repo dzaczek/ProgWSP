@@ -10,22 +10,16 @@
 #include <cmath>
 using namespace std;
 
-#define NUM_THREADS     4
-#define SIZE_ARRAY    10
-/*
-*
-*
-* g++ -std=c++14 -o main *.cpp -pthread
-*
-*
-*
-*/
+#define NUM_THREADS     1
+#define SIZE_ARRAY    256
 static int ilosc_przedzialow=SIZE_ARRAY;
-static int zakres_liczb=100;
-static int ilosc_losowan=200;
+static int size_histogram=SIZE_ARRAY;
+static int zakres_liczb=4096;
+static int ilosc_losowan=5000000;
 static int rozmiar_p=zakres_liczb/ilosc_losowan;
 vector<int>  vectorint;
-std::array <int,SIZE_ARRAY> histogram;
+//std::array <int,SIZE_ARRAY> histogram;
+int histogram[SIZE_ARRAY];
 string filename_data="orginal.txt";
 
 //int hist;ogram[ilosc_przedzialow];
@@ -44,24 +38,23 @@ void *THE_FUNCTION(void *threadarg)
    int PRZEDZIAL_rozmiar=ilosc_losowan/my_data->ilosc_w;
    int PRZEDZIAL_zakres_min=PRZEDZIAL_rozmiar*my_data->thread_id;
    int PRZEDZIAL_zakres_maks=PRZEDZIAL_zakres_min+PRZEDZIAL_rozmiar;
-   cout <<"\t\t\t ***THE FUNCTION***"<<endl;
+   int *wsk_array_hist;
+   wsk_array_hist=histogram;
    for(int sek=PRZEDZIAL_zakres_min;sek<PRZEDZIAL_zakres_maks;++sek)
    {
 
-// cout <<"\t\t\t ***THE FUNCTION start numer przedzialu ***"<<endl;
+
     int numerprzedzialu=(vectorint[sek] * ilosc_przedzialow-1)/zakres_liczb;
- // cout <<"\t\t\t ***THE FUNCTION END numer przedzialu ***"<<endl;
     //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
     //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl; 
-    cout <<"\t\t\t ***THE FUNCTION ENTER IFF ***"<<endl;
-    if(numerprzedzialu<=ilosc_przedzialow && numerprzedzialu>=0){
-    histogram[numerprzedzialu]=histogram[numerprzedzialu]+1;
-    cout <<"\t\t*** ADDED +1 to "<< numerprzedzialu <<"->"<<histogram[numerprzedzialu] << " by "<< my_data->thread_id<<endl;
+    if(numerprzedzialu<ilosc_przedzialow && numerprzedzialu>=0){
+    wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
     // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
     }
     else
     {
-      cout <<"\n\t\t********ERROR*********\n\t\t numerprzedzialu ->"<< numerprzedzialu;
+      cout <<"numerprzedzialu ->"<< numerprzedzialu;
+
     }
    }
    //cout << "\t\tThread ID : " << my_data->thread_id<<endl ;
@@ -93,6 +86,7 @@ void inputVint(string  filename)
         vectorint.push_back(invar);
     }
     inputFile.close();
+    cout<<histogram[1]<<" "<<histogram[10]<<endl;
 }
 
 //safe to file
@@ -126,9 +120,10 @@ void tworzHistogram()
  for (auto w0pk : vectorint)
  {
 
-    int numerprzedzialu=(w0pk * ilosc_przedzialow)/zakres_liczb;
+    int numerprzedzialu=(w0pk * ilosc_przedzialow-1)/zakres_liczb;
+    //numerprzedzialu=numerprzedzialu;
     //cout <<numerprzedzialu <<" ";
-    if(numerprzedzialu<=256 && numerprzedzialu>=0){
+    if(numerprzedzialu<size_histogram && numerprzedzialu>=0){
       histogram[numerprzedzialu]=histogram[numerprzedzialu]+1;
     // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
     }
@@ -146,7 +141,7 @@ void array_histogra_to_file(string filename)
   ofstream myfile(filename);
   if(myfile.is_open())
   {
-    for(int i;i<SIZE_ARRAY;++i){ myfile << histogram[i]<<endl;}
+    for(int i=0;i<size_histogram;++i){ myfile << histogram[i]<<"\n";}
   }
   cout <<"Zapisano plik wynikowy historamu o nazwie: "<<filename<<endl;
 }
@@ -164,7 +159,6 @@ int main ()
    pthread_t threads[NUM_THREADS];
    struct thread_data td[NUM_THREADS];
    srand(time(NULL));
-   
    int rc;
    int i;
 
@@ -183,12 +177,17 @@ int main ()
    //tworzymy histogram
   tworzHistogram();
 
-  // cout<<histogram[1]<<" "<<histogram[10]<<endl;
+  cout<<histogram[1]<<" "<<histogram[10]<<endl;
   array_histogra_to_file("1watek.txt");
 
+  //for (int i = 0; i < size_histogram; i++) {
+  //      cout<< i<<"->"<<histogram[i]<<endl;
+  //}
   //czyscimy tablice
-  for (int i = 0; i < sizeof(histogram); i++) {
+  for (int i = 0; i < size_histogram; i++) {
         histogram[i] = '\0';
+
+        
 }
 
    for( i=0; i < NUM_THREADS; i++ ){
@@ -200,10 +199,20 @@ int main ()
       if (rc){
          cout << "Error:unable to create thread," << rc << endl;
          exit(-1);
+
       }
+    pthread_detach(threads[i]);      
    }
-   pthread_exit(NULL);
+   cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file("Nwatek.txt");
+   //pthread_exit(NULL);
+    for (int i = 0; i < size_histogram; i++) {
+        cout<< i<<"->"<<histogram[i]<<endl;
+  }
+   cout<<"\t\t\t ***SAFE TO FILE***"<<endl;
+
+   
+   cout<<"\t\t\t ***END***"<<endl;
 }
 
 /*
