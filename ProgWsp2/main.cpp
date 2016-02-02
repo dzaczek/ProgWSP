@@ -8,7 +8,14 @@
 #include <string>
 #include <array>
 #include <cmath>
+
+#include <time.h> //usun ze sleepami
+#include <unistd.h>
+
+#include <sys/time.h>//for timestamp
+
 using namespace std;
+
 
 //#define NUM_THREADS     4
 
@@ -21,6 +28,9 @@ using namespace std;
  -*
  -*
  -*/
+    typedef unsigned long long timestamp_t;
+
+
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
 static int zakres_liczb=8192;
@@ -31,7 +41,15 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 
 string filename_data="orginal.txt";
-int NUM_THREADS=32;
+int NUM_THREADS=4096;
+
+  static timestamp_t get_timestamp()
+    {
+      struct timeval now;
+      gettimeofday (&now, NULL);
+      return  now.tv_usec + (timestamp_t)now.tv_sec * 1000000;
+    }
+
 
 
 
@@ -181,7 +199,9 @@ cout <<"\t Wygenerowano tablice o rozmarze: "  <<ilosc_losowan<<endl;
 }
 int main ()
 {
-   cout << "**** max_size: " << vectorint.max_size() << "\n";
+   //cout << "**** max_size: " << vectorint.max_size() << "\n";
+   cout <<"*** PID: "<< getpid()<<endl;
+   sleep (15);
    pthread_t threads[NUM_THREADS];
    struct thread_data td[NUM_THREADS];
    srand(time(NULL));
@@ -204,7 +224,7 @@ int main ()
   tworzHistogram();
 
  
-  array_histogra_to_file("1watek.txt");
+  array_histogra_to_file("wzor.txt");
 
   //for (int i = 0; i < size_histogram; i++) {
   //      cout<< i<<"->"<<histogram[i]<<endl;
@@ -216,14 +236,15 @@ int main ()
         
 }
                                                         
-cout<<"--------------------------------------------------"<<endl;
+cout<<"------------------------------------------------------------"<<endl;
 
-cout<< "|\tTHREADS\t\t|\t\tTIME\t|"<<endl;
-cout<<"--------------------------------------------------"<<endl;
+cout<< "|\tTHREADS\t|\tTIME\t|\ttimestamp\t|"<<endl;
+cout<<"------------------------------------------------------------"<<endl;
 while (NUM_THREADS>=1)
 {
 //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
      clock_t begin = clock();
+     timestamp_t t0 = get_timestamp();
    for( i=0; i < NUM_THREADS; i++ ){
       //cout <<"main() : creating thread, " << i << endl;
       td[i].thread_id = i;
@@ -239,6 +260,7 @@ while (NUM_THREADS>=1)
    }
      for(i=0;i<NUM_THREADS;i++)pthread_join(threads[i], NULL);
   // cout <<"test" <<pthread_exit(NULL)<<endl;
+  timestamp_t t1 = get_timestamp();
   clock_t end = clock();
 
 
@@ -250,19 +272,19 @@ while (NUM_THREADS>=1)
 
 
       string s = to_string(NUM_THREADS);
-      
-    cout<< "|\t"<<NUM_THREADS <<"\t\t|\t\t"<<diffclock(begin,end)<<"\t|"<<endl;
-    cout<<"--------------------------------------------------"<<endl;
+      double secs = (t1 - t0) / 1000000.0L;
+    cout<< "|\t"<<NUM_THREADS <<"\t|\t"<<diffclock(begin,end)<<"\t|\t"<< secs<<"\t|"<<endl;
+    cout<<"------------------------------------------------------------"<<endl;
 
 //   cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file(s+"watek.txt");
    
-   const int pki=(NUM_THREADS<=2)?1:2;
-   NUM_THREADS=NUM_THREADS-pki;
+   const int pki=(NUM_THREADS<=2)?NUM_THREADS=NUM_THREADS-1:NUM_THREADS=NUM_THREADS/2;
+   
     for (int i = 0; i < size_histogram; i++) {
         histogram[i] = '\0';  }
 
-
+        
  }
 
 
@@ -276,3 +298,4 @@ while (NUM_THREADS>=1)
    cout<<"\t\t\t ***END***"<<endl;
    return 0;
 }
+
