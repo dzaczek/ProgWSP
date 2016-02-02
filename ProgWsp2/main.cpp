@@ -23,12 +23,13 @@ using namespace std;
  -*/
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
-static int zakres_liczb=4096;
-static int ilosc_losowan=8000000;
+static int zakres_liczb=8192;
+static long long int ilosc_losowan=100000000;
 static int rozmiar_p=zakres_liczb/ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
 int histogram[SIZE_ARRAY];
+
 string filename_data="orginal.txt";
 int NUM_THREADS=32;
 
@@ -49,11 +50,11 @@ void *THE_FUNCTION(void *threadarg)
    int PRZEDZIAL_zakres_maks=PRZEDZIAL_zakres_min+PRZEDZIAL_rozmiar;
    int *wsk_array_hist;
    wsk_array_hist=histogram;
-   for(int sek=PRZEDZIAL_zakres_min;sek<PRZEDZIAL_zakres_maks;++sek)
+   for(long long int sek=PRZEDZIAL_zakres_min;sek<PRZEDZIAL_zakres_maks;++sek)
    {
 
 
-    int numerprzedzialu=(vectorint[sek] * ilosc_przedzialow-1)/zakres_liczb;
+    long long numerprzedzialu=(vectorint[sek] * ilosc_przedzialow-1)/zakres_liczb;
     //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
     //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl; 
     //wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
@@ -180,6 +181,7 @@ cout <<"\t Wygenerowano tablice o rozmarze: "  <<ilosc_losowan<<endl;
 }
 int main ()
 {
+   cout << "**** max_size: " << vectorint.max_size() << "\n";
    pthread_t threads[NUM_THREADS];
    struct thread_data td[NUM_THREADS];
    srand(time(NULL));
@@ -213,10 +215,11 @@ int main ()
 
         
 }
-cout<<"-----------------------------------------------------------------"<<endl;
+                                                        
+cout<<"--------------------------------------------------"<<endl;
 
 cout<< "|\tTHREADS\t\t|\t\tTIME\t|"<<endl;
-cout<<"-----------------------------------------------------------------"<<endl;
+cout<<"--------------------------------------------------"<<endl;
 while (NUM_THREADS>=1)
 {
 //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
@@ -249,16 +252,17 @@ while (NUM_THREADS>=1)
       string s = to_string(NUM_THREADS);
       
     cout<< "|\t"<<NUM_THREADS <<"\t\t|\t\t"<<diffclock(begin,end)<<"\t|"<<endl;
-    cout<<"-----------------------------------------------------------------"<<endl;
+    cout<<"--------------------------------------------------"<<endl;
+
 //   cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file(s+"watek.txt");
    
    const int pki=(NUM_THREADS<=2)?1:2;
    NUM_THREADS=NUM_THREADS-pki;
     for (int i = 0; i < size_histogram; i++) {
-        histogram[i] = '\0';
+        histogram[i] = '\0';  }
 
-   }
+
  }
 
 
