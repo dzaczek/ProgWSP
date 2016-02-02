@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include <pthread.h>
+#include <thread>
 #include <vector>
 #include <time.h>
 #include <fstream>
@@ -12,6 +12,14 @@ using namespace std;
 
 #define NUM_THREADS     10
 #define SIZE_ARRAY    256
+/*
+ -*
+ -*
+ -* g++ -std=c++17  zad2av2.cpp -pthread -g
+ -*
+ -*
+ -*
+ -*/
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
 static int zakres_liczb=4096;
@@ -22,7 +30,7 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 string filename_data="orginal.txt";
 
-//int hist;ogram[ilosc_przedzialow];
+
 
 
 struct thread_data{
@@ -64,6 +72,7 @@ void *THE_FUNCTION(void *threadarg)
    cout << "\t\t TID:"<<my_data->thread_id<<"\n\t\tPrzedzial Rozmiar" <<PRZEDZIAL_rozmiar<<"\n\t\tPrzedzial MIN: "<<PRZEDZIAL_zakres_min<<"\n\t\t Przedzial MAKS: "<<PRZEDZIAL_zakres_maks<<"\n"<<endl;
    cout << "\t\tilosc_losowan->"<<ilosc_losowan<<endl;
    cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
+   //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ; 
   // pthread_exit(NULL);
 }
 
@@ -202,9 +211,21 @@ int main ()
          exit(-1);
 
       }
-    //pthread_detach(threads[i]);      
+    pthread_detach(threads[i]);      
    }
-   pthread_exit(NULL);
+   cout <<"test" <<pthread_exit(NULL)<<endl;
+
+
+
+ //for(i=0; i<NUM_THREADS; i++)
+  //  {
+   //         status*   status;
+    //        pthread_join(threads[i], &status);
+    //}
+
+
+
+
    cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file("Nwatek.txt");
    
@@ -218,6 +239,7 @@ int main ()
 
    
    cout<<"\t\t\t ***END***"<<endl;
+   return 0;
 }
 
 /*
