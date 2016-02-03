@@ -18,6 +18,14 @@ using namespace std;
 
 
 //#define NUM_THREADS     4
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
 /*
@@ -34,14 +42,14 @@ using namespace std;
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
 static int zakres_liczb=8192;
-static long long int ilosc_losowan=10000000;
+static long long int ilosc_losowan=100000000;
 static int rozmiar_p=zakres_liczb/ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
 int histogram[SIZE_ARRAY];
 
 string filename_data="orginal.txt";
-int NUM_THREADS=8192;
+int NUM_THREADS=16384;
 
   static timestamp_t get_timestamp()
     {
@@ -246,10 +254,10 @@ int main ()
         
 }
                                                         
-cout<<"------------------------------------------------------------"<<endl;
+cout<<"-----------------------------------------------------------------------"<<endl;
+cout<< "|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist| TIME/CORE |NUM/THREADS|"<<endl;
+cout<<"-----------------------------------------------------------------------"<<endl;
 
-cout<< "|THREADS|CORE TIME|Timestamp| Chrono |Ele  His| TIME/CORE |"<<endl;
-cout<<"------------------------------------------------------------"<<endl;
 while (NUM_THREADS>=1)
 {
 //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
@@ -286,9 +294,10 @@ while (NUM_THREADS>=1)
       double secs = (t1 - t0) / 1000000.0L;
       double diffcores=diffclock(begin,end);
       double diffcore=diffcores/NUM_THREADS;
+      int iloscnawatek=ilosc_losowan/NUM_THREADS;
     //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
-    printf("|%7d|%9f|%9f|%5f|%8d|%11f|\n",NUM_THREADS,diffcores,secs,elapsed_seconds/1000000000,createSumArray(histogram,SIZE_ARRAY),diffcore);
-    cout<<"------------------------------------------------------------"<<endl;
+    printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n",NUM_THREADS,diffcores,secs,KGRN,elapsed_seconds/1000000000,KNRM,KBLU,createSumArray(histogram,SIZE_ARRAY),KNRM,diffcore,KBLU,iloscnawatek,KNRM);
+    cout<<"-----------------------------------------------------------------------"<<endl;
 
 //   cout<<"\t\t\t ***END THR***"<<endl;
    array_histogra_to_file(s+"watek.txt");
@@ -312,5 +321,3 @@ while (NUM_THREADS>=1)
    cout<<"\t\t\t ***END***"<<endl;
    return 0;
 }
-
-
