@@ -24,8 +24,8 @@ using namespace std;
  -*
  -*
  -* g++ -std=c++17  zad2av2.cpp -pthread -g
- -*
- -*
+ -
+* -*
  -*
  -*/
     typedef unsigned long long timestamp_t;
@@ -34,14 +34,14 @@ using namespace std;
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
 static int zakres_liczb=8192;
-static long long int ilosc_losowan=100000000;
+static long long int ilosc_losowan=10000000;
 static int rozmiar_p=zakres_liczb/ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
 int histogram[SIZE_ARRAY];
 
 string filename_data="orginal.txt";
-int NUM_THREADS=4096;
+int NUM_THREADS=8192;
 
   static timestamp_t get_timestamp()
     {
@@ -169,10 +169,20 @@ void tworzHistogram()
  
 }
 
+
+int createSumArray(int* arr, int size)
+{
+ int wynik=0;
+ for (int i = 0; i < size; i++)
+    wynik += arr[i];
+
+return wynik;
+}
+
  double diffclock( clock_t clock2, clock_t clock1 ) {
 
         double diffticks = clock1 - clock2;
-        double diffms    = diffticks / ( CLOCKS_PER_SEC / 1000 );
+        double diffms    = diffticks / ( CLOCKS_PER_SEC / 1 );
 
         return diffms;
     }
@@ -191,7 +201,7 @@ void array_histogra_to_file(string filename)
 //insert data to table
 void data_generate()
 {
-for (int i=0; i<ilosc_losowan; i++)
+for (long long int i=0; i<ilosc_losowan; i++)
 {
     vectorint.push_back(random2());
 }
@@ -201,7 +211,7 @@ int main ()
 {
    //cout << "**** max_size: " << vectorint.max_size() << "\n";
    cout <<"*** PID: "<< getpid()<<endl;
-   sleep (15);
+   sleep (3);
    pthread_t threads[NUM_THREADS];
    struct thread_data td[NUM_THREADS];
    srand(time(NULL));
@@ -238,13 +248,14 @@ int main ()
                                                         
 cout<<"------------------------------------------------------------"<<endl;
 
-cout<< "|\tTHREADS\t|\tTIME\t|\ttimestamp\t|"<<endl;
+cout<< "|THREADS|CORE TIME|Timestamp| Chrono |Ele  His| TIME/CORE |"<<endl;
 cout<<"------------------------------------------------------------"<<endl;
 while (NUM_THREADS>=1)
 {
 //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
      clock_t begin = clock();
      timestamp_t t0 = get_timestamp();
+     auto start = std::chrono::steady_clock::now();
    for( i=0; i < NUM_THREADS; i++ ){
       //cout <<"main() : creating thread, " << i << endl;
       td[i].thread_id = i;
@@ -262,7 +273,7 @@ while (NUM_THREADS>=1)
   // cout <<"test" <<pthread_exit(NULL)<<endl;
   timestamp_t t1 = get_timestamp();
   clock_t end = clock();
-
+  auto stop = std::chrono::steady_clock::now();
 
  //for(i=0; i<NUM_THREADS; i++)
   //  {
@@ -270,10 +281,13 @@ while (NUM_THREADS>=1)
     //        pthread_join(threads[i], &status);
     //}
 
-
+      double elapsed_seconds = std::chrono::duration_cast<std::chrono::nanoseconds>(stop- start).count();
       string s = to_string(NUM_THREADS);
       double secs = (t1 - t0) / 1000000.0L;
-    cout<< "|\t"<<NUM_THREADS <<"\t|\t"<<diffclock(begin,end)<<"\t|\t"<< secs<<"\t|"<<endl;
+      double diffcores=diffclock(begin,end);
+      double diffcore=diffcores/NUM_THREADS;
+    //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
+    printf("|%7d|%9f|%9f|%5f|%8d|%11f|\n",NUM_THREADS,diffcores,secs,elapsed_seconds/1000000000,createSumArray(histogram,SIZE_ARRAY),diffcore);
     cout<<"------------------------------------------------------------"<<endl;
 
 //   cout<<"\t\t\t ***END THR***"<<endl;
@@ -298,4 +312,5 @@ while (NUM_THREADS>=1)
    cout<<"\t\t\t ***END***"<<endl;
    return 0;
 }
+
 
