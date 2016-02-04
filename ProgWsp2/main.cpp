@@ -14,6 +14,8 @@
 
 #include <sys/time.h>//for timestamp
 
+#include <sys/stat.h>
+#include <sstream>
 using namespace std;
 
 
@@ -36,8 +38,7 @@ using namespace std;
 * -*
  -*
  -*/
-    typedef unsigned long long timestamp_t;
-
+typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow=SIZE_ARRAY;
 static int size_histogram=SIZE_ARRAY;
@@ -51,6 +52,16 @@ int histogram[SIZE_ARRAY];
 string filename_data="orginal.txt";
 int NUM_THREADS=16384;
 
+
+time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+
+ 
+
+
+
+
   static timestamp_t get_timestamp()
     {
       struct timeval now;
@@ -61,8 +72,8 @@ int NUM_THREADS=16384;
 
 
 
-struct thread_data{
-   int  thread_id;
+struct thread_data
+{   int  thread_id;
    int ilosc_w;
 
 };
@@ -206,6 +217,21 @@ void array_histogra_to_file(string filename)
   }
 //  cout <<"Zapisano plik wynikowy historamu o nazwie: "<<filename<<endl;
 }
+
+void string_to_file(string filename,string data)
+{
+  //int arr*=histogram;
+  ofstream myfile(filename, std::ios::app);
+  if(myfile.is_open())
+  {
+    myfile << data;
+  }
+  else
+  {
+    cout <<"***FUCK"<<endl;
+  }
+//  cout <<"Zapisano plik wynikowy historamu o nazwie: "<<filename<<endl;
+}
 //insert data to table
 void data_generate()
 {
@@ -225,6 +251,21 @@ int main ()
    srand(time(NULL));
    int rc;
    int i;
+   time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%Y-%m-%d_%I:%M:%S",timeinfo);
+    std::string str77(buffer);
+    std::cout << str77<<endl;
+    //char str78=buffer;
+    const int dir_err = mkdir(buffer, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (-1 == dir_err)
+    {   
+    printf("Error creating directory!n");
+    exit(1);
+    }
+
+
 
   //generujemy vector losowych danych z zakresu
   if(!check_if_file_exist(filename_data)){
@@ -253,11 +294,13 @@ int main ()
 
         
 }
-                                                        
-cout<<"-----------------------------------------------------------------------"<<endl;
-cout<< "|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist| TIME/CORE |NUM/THREADS|"<<endl;
-cout<<"-----------------------------------------------------------------------"<<endl;
+string head="|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist| TIME/CORE |NUM/THREADS|";                                                
+string head1=";THREADS;CORE TIME;Timestamp; Chrono ; Ele Hist; TIME/CORE ;NUM/THREADS;\n";                                                
 
+cout<<"-----------------------------------------------------------------------"<<endl;
+cout<< head <<endl;
+cout<<"-----------------------------------------------------------------------"<<endl;
+string_to_file(str77 + "/STATS.csv", head1);
 while (NUM_THREADS>=1)
 {
 //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
@@ -298,9 +341,13 @@ while (NUM_THREADS>=1)
     //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
     printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n",NUM_THREADS,diffcores,secs,KGRN,elapsed_seconds/1000000000,KNRM,KBLU,createSumArray(histogram,SIZE_ARRAY),KNRM,diffcore,KBLU,iloscnawatek,KNRM);
     cout<<"-----------------------------------------------------------------------"<<endl;
+    std::ostringstream mydane;
 
+    mydane <<";"<<NUM_THREADS<<";"<<diffcores<<";"<<secs<<";"<<elapsed_seconds/1000000000<<";"<<createSumArray(histogram,SIZE_ARRAY)<<";"<<diffcore<<";"<<iloscnawatek<<";\n";
+    
+    string_to_file(str77 + "/STATS.csv", mydane.str());
 //   cout<<"\t\t\t ***END THR***"<<endl;
-   array_histogra_to_file(s+"watek.txt");
+   array_histogra_to_file(str77+"/"+s+"watek.txt");
    
    const int pki=(NUM_THREADS<=2)?NUM_THREADS=NUM_THREADS-1:NUM_THREADS=NUM_THREADS/2;
    
@@ -317,7 +364,9 @@ while (NUM_THREADS>=1)
   //}
    //cout<<"\t\t\t ***SAFE TO FILE***"<<endl;
 
-   
+  // cout <<isprint(timestart)<<endl;
+    
    cout<<"\t\t\t ***END***"<<endl;
    return 0;
 }
+
