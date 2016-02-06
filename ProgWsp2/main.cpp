@@ -67,12 +67,13 @@ public:
   void set_pomiar(int numer){numer_pomiaru=numer;}
   void set_watki(int numer){ilosc_watkow=numer;}
   void set_czas(double czas){czas_wykonywania=czas;} 
-  void set_arr(int arr[]){hitt=arr;}
+  int hitt[256];
+  //void set_arr(int arr[]){hitt=arr;}
 private:
   int numer_pomiaru;
   int ilosc_watkow;
   double czas_wykonywania;
-  int hitt[256];
+  
 
   
 };
@@ -383,7 +384,7 @@ int main ()
       s1->set_pomiar(rotator);
       s1->set_watki(NUM_THREADS_S);
       s1->set_czas(elapsed_seconds/1000000000); 
-      s1->set_arr(*histogram);
+      s1.hitt=histogram;
       statystyki.push_back(*s1);
       string_to_file(str76 + "/STATS.csv", mydane.str());
 //   cout<<"\t\t\t ***END THR***"<<endl;
