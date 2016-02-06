@@ -62,14 +62,18 @@ char buffer[80];
 
 class statsy
 {
+
 public:
+  void set_pomiar(int numer){numer_pomiaru=numer;}
+  void set_watki(int numer){ilosc_watkow=numer;}
+  void set_czas(double czas){czas_wykonywania=czas;} 
+  void set_arr(int arr[]){hitt=arr;}
+private:
   int numer_pomiaru;
   int ilosc_watkow;
   double czas_wykonywania;
   int hitt[256];
 
-  statsy();
-  ~statsy();
   
 };
 
@@ -256,9 +260,11 @@ void data_generate()
 }
 int main ()
 {
+
+
   //cout << "**** max_size: " << vectorint.max_size() << "\n";
   cout << "*** PID: " << getpid() << endl;
-  sleep (3);
+  //sleep (3);
   pthread_t threads[NUM_THREADS];
   struct thread_data td[NUM_THREADS];
   srand(time(NULL));
@@ -269,10 +275,8 @@ int main ()
 
   strftime(buffer, 80, "%Y-%m-%d_%I:%M:%S", timeinfo);
   std::string str77(buffer);
-  //  std::cout << str77<<endl;
-
-  //char str78=buffer;
-
+  vector <statsy> statystyki;
+  statsy *s1;
 
 
   //generujemy vector losowych danych z zakresu
@@ -297,15 +301,16 @@ int main ()
   //      cout<< i<<"->"<<histogram[i]<<endl;
   //}
   //czyscimy tablice
-
+//////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP///
   for (int rotator = 1; rotator <= iloscprobek; rotator++) {
+    
 
     string str76 = str77 + "_" + to_string(rotator);
     int NUM_THREADS_S=NUM_THREADS;
 
     char str75[21];
-    size_t length = str76.copy(str75, str76.length());
-    cout << "length" << length << endl;
+   // size_t length = str76.copy(str75, str76.length());
+    //cout << "length" << length << endl;
    // str75[length] = "\0";
 
     const int dir_err = mkdir(str76.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -374,6 +379,12 @@ int main ()
 
       mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << createSumArray(histogram, SIZE_ARRAY) << ";" << diffcore << ";" << iloscnawatek << ";\n";
 
+      s1=new statsy; 
+      s1->set_pomiar(rotator);
+      s1->set_watki(NUM_THREADS_S);
+      s1->set_czas(elapsed_seconds/1000000000); 
+      s1->set_arr(*histogram);
+      statystyki.push_back(*s1);
       string_to_file(str76 + "/STATS.csv", mydane.str());
 //   cout<<"\t\t\t ***END THR***"<<endl;
       array_histogra_to_file(str76 + "/" + s + "watek.txt");
