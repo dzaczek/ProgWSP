@@ -67,13 +67,15 @@ public:
   void set_pomiar(int numer){numer_pomiaru=numer;}
   void set_watki(int numer){ilosc_watkow=numer;}
   void set_czas(double czas){czas_wykonywania=czas;} 
-  int hitt[256];
+  void set_hist(const std::vector<int>& v){hist=v;}
+  
   //void set_arr(int arr[]){hitt=arr;}
 private:
   int numer_pomiaru;
   int ilosc_watkow;
   double czas_wykonywania;
-  
+  vector<int>hist;
+ // vector <int> histogram;
 
   
 };
@@ -336,9 +338,10 @@ int main ()
     cout << head << endl;
     cout << "-----------------------------------------------------------------------" << endl;
     string_to_file(str76 + "/STATS.csv", head1);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     while (NUM_THREADS_S >= 1)
     {
-//  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
+      //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
       clock_t begin = clock();
       timestamp_t t0 = get_timestamp();
       auto start = std::chrono::steady_clock::now();
@@ -383,8 +386,11 @@ int main ()
       s1=new statsy; 
       s1->set_pomiar(rotator);
       s1->set_watki(NUM_THREADS_S);
-      s1->set_czas(elapsed_seconds/1000000000); 
-      s1.hitt=histogram;
+      s1->set_czas(elapsed_seconds/1000000000);
+      vector<int>vhist; 
+      auto it = vhist.begin();
+      vhist.insert(it,histogram,histogram+3);
+      s1->set_hist(vhist);
       statystyki.push_back(*s1);
       string_to_file(str76 + "/STATS.csv", mydane.str());
 //   cout<<"\t\t\t ***END THR***"<<endl;
