@@ -52,9 +52,9 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
-int NUM_THREADS = 32; //16384;
-int iloscprobek = 1;
-
+static int NUM_THREADS = 64; //16384;
+int iloscprobek = 2;
+auto NUN_sub_probek=round(log10(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
 char buffer[80];
@@ -283,6 +283,40 @@ void data_generate()
   }
   cout << "\t Wygenerowano tablice o rozmarze: "  << ilosc_losowan << endl;
 }
+
+void histograms_to_file(string str77,vector<statsy>& statystyki){
+  for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  { 
+
+  ostringstream headers1 ;
+
+   if (ipk==0){
+     for(statsy header : statystyki)
+     {
+      headers1 <<"N H:"<<header.return_watki()<<"-P:"<<header.return_nrpomiaru()<<" ";
+       
+       //string_to_file(str77 + "/STATS.csv", headers1.str());
+      }
+      headers1 <<endl;
+      
+     }
+
+    headers1 <<ipk+1<<" ";  
+ for (statsy  mrs : statystyki )
+ {
+  //cout <<mrs.return_watki()<<" "<<mrs.return_nrpomiaru()<<" "<<mrs.licz()<<" Size:"<< mrs.vector_size()<<endl;
+  //for (int iks : )  
+
+
+  headers1 << mrs.return_hist(ipk)<<" ";
+  
+ }
+ //cout <<endl;
+ headers1 <<"\n";
+ cout << headers1.str();
+string_to_file(str77+"STATS.csv",headers1.str());
+}
+}
+
 int main ()
 {
 
@@ -444,17 +478,9 @@ Globalne Statystyki
 
 */
 
-
- for (statsy  mrs : statystyki )
- {
-  //cout <<mrs.return_watki()<<" "<<mrs.return_nrpomiaru()<<" "<<mrs.licz()<<" Size:"<< mrs.vector_size()<<endl;
-  int iterator=1;
-
-
-  //mrs.print_hist();
-  cout <<mrs.return_hist(1)<<endl;
- }
-
+histograms_to_file(str77,statystyki);
+  
+ 
  
 
 
