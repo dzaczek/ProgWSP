@@ -53,7 +53,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 int NUM_THREADS = 32; //16384;
-int iloscprobek = 4;
+int iloscprobek = 1;
 
 time_t rawtime;
 struct tm * timeinfo;
@@ -68,18 +68,40 @@ public:
   void set_watki(int numer){ilosc_watkow=numer;}
   void set_czas(double czas){czas_wykonywania=czas;} 
   void set_hist(const std::vector<int>& v){hist=v;}
+  int return_watki(){return ilosc_watkow;}
+  int return_nrpomiaru(){return numer_pomiaru;}
+  double return_czas(){return czas_wykonywania;}
+  int licz();
+  void print_hist();
+  int vector_size(){return hist.size();}
+  int return_hist(int n){return hist[n];}
   
-  //void set_arr(int arr[]){hitt=arr;}
 private:
   int numer_pomiaru;
   int ilosc_watkow;
   double czas_wykonywania;
   vector<int>hist;
- // vector <int> histogram;
+  int hist_sum;
+  
 
   
 };
 
+
+
+void statsy::print_hist()
+{
+ for (int n: hist )
+   cout << n << endl;
+}
+
+int statsy::licz(){
+int sum_of_elems=0;
+for (int n : hist)
+    sum_of_elems += n;
+cout <<sum_of_elems<<endl;
+return sum_of_elems;
+ }
 
 
 static timestamp_t get_timestamp()
@@ -389,7 +411,7 @@ int main ()
       s1->set_czas(elapsed_seconds/1000000000);
       vector<int>vhist; 
       auto it = vhist.begin();
-      vhist.insert(it,histogram,histogram+3);
+      vhist.insert(it,histogram,histogram+256);
       s1->set_hist(vhist);
       statystyki.push_back(*s1);
       string_to_file(str76 + "/STATS.csv", mydane.str());
@@ -416,11 +438,31 @@ int main ()
   // cout <<isprint(timestart)<<endl;
 
   cout << "\t\t\t ***END***" << endl;
+/*
+
+Globalne Statystyki 
+
+*/
+
+
+ for (statsy  mrs : statystyki )
+ {
+  //cout <<mrs.return_watki()<<" "<<mrs.return_nrpomiaru()<<" "<<mrs.licz()<<" Size:"<< mrs.vector_size()<<endl;
+  int iterator=1;
+
+
+  //mrs.print_hist();
+  cout <<mrs.return_hist(1)<<endl;
+ }
+
+ 
+
+
   //auto gooo="cd "+str77+"/";
   //system("cd str77");
   // char cmd=;
   //system("gnuplot;reset;set term png truecolor;set term png size 1600, 400;set output 'profit_dots.png';set xlabel 'ZAKRES';set ylabel 'WARTOSCI';set grid;set boxwidth 1.95 relative;set style fill transparent solid 0.5 noborder;list=system('ls -1B *watek.txt | sort -h');plot for[file in list] file  using 1:2 w points  title  file; exit;");
-  //return 0;
+  return 0;
 }
 
 /*
