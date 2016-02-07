@@ -290,9 +290,10 @@ void histograms_to_file(string str77,vector<statsy>& statystyki){
   ostringstream headers1 ;
 
    if (ipk==0){
+     headers1<<"N ";
      for(statsy header : statystyki)
      {
-      headers1 <<"N H:"<<header.return_watki()<<"-P:"<<header.return_nrpomiaru()<<" ";
+      headers1 <<"H:"<<header.return_watki()<<"-P:"<<header.return_nrpomiaru()<<" ";
        
        //string_to_file(str77 + "/STATS.csv", headers1.str());
       }
