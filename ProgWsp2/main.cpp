@@ -54,7 +54,7 @@ int histogram[SIZE_ARRAY];
 string filename_data = "orginal.txt";
 static int NUM_THREADS = 64; //16384;
 int iloscprobek = 2;
-auto NUN_sub_probek=round(log10(NUM_THREADS)+2);
+auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
 char buffer[80];
@@ -283,6 +283,44 @@ void data_generate()
   }
   cout << "\t Wygenerowano tablice o rozmarze: "  << ilosc_losowan << endl;
 }
+void gnuplotoutput(string filename,string kapibara)
+{
+string ploter="reset \n \
+set term png truecolor \n \
+set datafile separator ' ' \n\
+set term png size 2900, 1000\n \
+set output \""+filename+"profit_line.png\" \n \
+set xlabel \"ZAKRES\" \n \
+set ylabel \"WARTOSCI\" \n \
+set grid \n \
+set boxwidth 1 relative \n \
+set key below \n \
+set key font \",20\" \n \
+set style fill transparent solid 1 \n \
+set key autotitle columnhead \n \
+set key samplen 2 spacing 1 \n \
+plot [0:256] for [col=2:"+kapibara+"] '"+filename+"STATS.csv'   using 1:(column(int(col))) w lines  title columnhead(col)\n \
+reset \n\
+set term png truecolor \n \
+set datafile separator ' ' \n \
+set term png size 2900, 1000 \n \
+set output \""+filename+"profit_pointers.png\" \n \
+set xlabel \"ZAKRES\" \n \
+set ylabel \"WARTOSCI \" \n \
+set grid \n \
+set boxwidth 1 relative \n \
+set key below \n \
+set key font \",20\" \n \
+set style fill transparent solid 1 \n \
+set key autotitle columnhead \n \
+set key samplen 2 spacing 1 \n \
+set pointsize 4 \n \
+plot [0:256] for [col=2:"+kapibara+"] '"+filename+"STATS.csv'   using 1:(column(int(col))) w  points  title columnhead(col)\n\
+";
+string_to_file(filename+"stat.gp", ploter);
+cout <<endl<<"***"<<NUN_sub_probek<<" "<< log2(NUM_THREADS)+2<<" "<<iloscprobek*NUN_sub_probek<<endl;
+
+}
 
 void histograms_to_file(string str77,vector<statsy>& statystyki){
   for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  { 
@@ -480,8 +518,9 @@ Globalne Statystyki
 */
 
 histograms_to_file(str77,statystyki);
-  
- 
+gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
+string filestat="gnuplot "+str77+"stat.gp"; 
+system((filestat).c_str()); 
  
 
 
