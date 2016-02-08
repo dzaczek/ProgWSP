@@ -44,8 +44,8 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
+static long long int ilosc_losowan =400000; //4000000; //100000000;
 static int zakres_liczb = 8192;
-static long long int ilosc_losowan =4000000; //4000000; //100000000;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
@@ -66,7 +66,7 @@ class statsy
 public:
   void set_pomiar(int numer){numer_pomiaru=numer;}
   void set_watki(int numer){ilosc_watkow=numer;}
-  void set_czas(double czas){czas_wykonywania=czas;} 
+  void set_czas(double czas){czas_wykonywania=czas;}
   void set_hist(const std::vector<int>& v){hist=v;}
   int return_watki(){return ilosc_watkow;}
   int return_nrpomiaru(){return numer_pomiaru;}
@@ -76,16 +76,16 @@ public:
   int vector_size(){return hist.size();}
   int return_hist(int n){return hist[n];}
   vector<int> return_hist(){return hist;}
-  
+
 private:
   int numer_pomiaru;
   int ilosc_watkow;
   double czas_wykonywania;
   vector<int>hist;
   int hist_sum;
-  
 
-  
+
+
 };
 
 
@@ -323,8 +323,8 @@ string_to_file(filename+"stat.gp", ploter);
 }
 
 void histograms_to_file(string str77,vector<statsy>& statystyki){
-  for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  { 
-  
+  for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  {
+
   vector<int> column;
   ostringstream headers1 ;
 
@@ -333,22 +333,22 @@ void histograms_to_file(string str77,vector<statsy>& statystyki){
      for(statsy header : statystyki)
      {
       headers1 <<"H:"<<header.return_watki()<<"-P:"<<header.return_nrpomiaru()<<" ";
-       
+
        //string_to_file(str77 + "/STATS.csv", headers1.str());
       }
       headers1 <<endl;
-      
+
      }
 
-    headers1 <<ipk+1<<" ";  
+    headers1 <<ipk+1<<" ";
  for (statsy  mrs : statystyki )
  {
   //cout <<mrs.return_watki()<<" "<<mrs.return_nrpomiaru()<<" "<<mrs.licz()<<" Size:"<< mrs.vector_size()<<endl;
-  //for (int iks : )  
+  //for (int iks : )
 
- // vector<int>row; 
+ // vector<int>row;
   headers1 << mrs.return_hist(ipk)<<" ";
-  
+
  }
  //cout <<endl;
  headers1 <<"\n";
@@ -357,14 +357,24 @@ string_to_file(str77+"STATS.csv",headers1.str());
 }
 }
 
+void print_ele_of_vector(vector<int>& dane){
+    for (int mrd: dane){
+        cout <<mrd<<endl;
+    }
+}
 
-void average_histogram(string str77,vector<statsy>& statystyki){
+void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S){
 
+vector<int> typki;while(NUM_THREADS_S >=1){typki.push_back(NUM_THREADS_S); (NUM_THREADS_S <= 4) ? NUM_THREADS_S = NUM_THREADS_S - 1 : NUM_THREADS_S = NUM_THREADS_S / 2;}
+print_ele_of_vector(typki);
+for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  {
 for (statsy mrd : statystyki)
 {
- vector<int> a = mrd.return_hist();
- cout <<a[1]<< endl;
+ //vector<int> a = mrd.return_hist();
+ //cout <<a[1]<< endl;
 }
+}
+
 }
 
 
@@ -413,7 +423,7 @@ int main ()
   //czyscimy tablice
 //////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP/////LOOP///
   for (int rotator = 1; rotator <= iloscprobek; rotator++) {
-    
+
 
     string str76 = str77 + "_" + to_string(rotator);
     int NUM_THREADS_S=NUM_THREADS;
@@ -490,11 +500,11 @@ int main ()
 
       mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << createSumArray(histogram, SIZE_ARRAY) << ";" << diffcore << ";" << iloscnawatek << ";\n";
 
-      s1=new statsy; 
+      s1=new statsy;
       s1->set_pomiar(rotator);
       s1->set_watki(NUM_THREADS_S);
       s1->set_czas(elapsed_seconds/1000000000);
-      vector<int>vhist; 
+      vector<int>vhist;
       auto it = vhist.begin();
       vhist.insert(it,histogram,histogram+256);
       s1->set_hist(vhist);
@@ -525,15 +535,15 @@ int main ()
   cout << "\t\t\t ***END***" << endl;
 /*
 
-Globalne Statystyki 
+Globalne Statystyki
 
 */
 
 histograms_to_file(str77,statystyki);
 gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
-string filestat="gnuplot "+str77+"stat.gp"; 
-system((filestat).c_str()); 
-average_histogram(str77,statystyki); 
+string filestat="gnuplot "+str77+"stat.gp";
+system((filestat).c_str());
+average_histogram(str77,statystyki,NUM_THREADS);
 
 
   //auto gooo="cd "+str77+"/";
