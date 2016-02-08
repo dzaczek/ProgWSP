@@ -45,7 +45,7 @@ typedef unsigned long long timestamp_t;
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
 static int zakres_liczb = 8192;
-static long long int ilosc_losowan = 4000000; //100000000;
+static long long int ilosc_losowan =4000000; //4000000; //100000000;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
@@ -75,6 +75,7 @@ public:
   void print_hist();
   int vector_size(){return hist.size();}
   int return_hist(int n){return hist[n];}
+  vector<int> return_hist(){return hist;}
   
 private:
   int numer_pomiaru;
@@ -318,13 +319,13 @@ set pointsize 4 \n \
 plot [0:256] for [col=2:"+kapibara+"] '"+filename+"STATS.csv'   using 1:(column(int(col))) w  points  title columnhead(col)\n\
 ";
 string_to_file(filename+"stat.gp", ploter);
-cout <<endl<<"***"<<NUN_sub_probek<<" "<< log2(NUM_THREADS)+2<<" "<<iloscprobek*NUN_sub_probek<<endl;
 
 }
 
 void histograms_to_file(string str77,vector<statsy>& statystyki){
   for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  { 
-
+  
+  vector<int> column;
   ostringstream headers1 ;
 
    if (ipk==0){
@@ -345,16 +346,27 @@ void histograms_to_file(string str77,vector<statsy>& statystyki){
   //cout <<mrs.return_watki()<<" "<<mrs.return_nrpomiaru()<<" "<<mrs.licz()<<" Size:"<< mrs.vector_size()<<endl;
   //for (int iks : )  
 
-
+ // vector<int>row; 
   headers1 << mrs.return_hist(ipk)<<" ";
   
  }
  //cout <<endl;
  headers1 <<"\n";
- cout << headers1.str();
+ //cout << headers1.str();
 string_to_file(str77+"STATS.csv",headers1.str());
 }
 }
+
+
+void average_histogram(string str77,vector<statsy>& statystyki){
+
+for (statsy mrd : statystyki)
+{
+ vector<int> a = mrd.return_hist();
+ cout <<a[1]<< endl;
+}
+}
+
 
 int main ()
 {
@@ -521,7 +533,7 @@ histograms_to_file(str77,statystyki);
 gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
 string filestat="gnuplot "+str77+"stat.gp"; 
 system((filestat).c_str()); 
- 
+average_histogram(str77,statystyki); 
 
 
   //auto gooo="cd "+str77+"/";
