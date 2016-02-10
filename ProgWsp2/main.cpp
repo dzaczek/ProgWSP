@@ -357,25 +357,65 @@ string_to_file(str77+"STATS.csv",headers1.str());
 }
 }
 
+// void print_array(int n,int m,int arr[][n]){
+//     int i, j;
+//     for (i = 0; i < m; i++)
+//     {
+//         for (j = 0; j < n; j++)
+//         {
+//             (i==m-1)?(cout << arr[i][j]<<endl):(cout << arr[i][j]<<" ")
+//
+//         }
+//     }
+// }
+void display(int **array, size_t rows, size_t cols)
+{
+    std::cout << __func__ << std::endl;
+    for (size_t i = 0; i < rows; ++i)
+    {
+        std::cout << i << ": ";
+        for (size_t j = 0; j < cols; ++j)
+            std::cout << array[i][j] << '\t';
+        std::cout << std::endl;
+    }
+}
+
 void print_ele_of_vector(vector<int>& dane){
     for (int mrd: dane){
         cout <<mrd<<endl;
     }
 }
 
-void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S){
-
+void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S,int num_sub){
 vector<int> typki;while(NUM_THREADS_S >=1){typki.push_back(NUM_THREADS_S); (NUM_THREADS_S <= 4) ? NUM_THREADS_S = NUM_THREADS_S - 1 : NUM_THREADS_S = NUM_THREADS_S / 2;}
+int Parray[256][num_sub];
 print_ele_of_vector(typki);
 for (int ipk=0 ;ipk<ilosc_przedzialow;ipk++)  {
+
+//i=0;
+//for (int jty : typki){
+//for(int mik=0;mik<typki.size();mik++){
+for(int mik=0;mik<typki.size();mik++){
 for (statsy mrd : statystyki)
 {
+
+
+if(mrd.return_watki()==typki[mik]){Parray[ipk][mik]+=mrd.return_hist(ipk);}
+
+
+
+}
  //vector<int> a = mrd.return_hist();
  //cout <<a[1]<< endl;
 }
+
+//}
+//}
+//i+=1;
+}
+display(Parray,256,10);
 }
 
-}
 
 
 int main ()
@@ -543,7 +583,7 @@ histograms_to_file(str77,statystyki);
 gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
 string filestat="gnuplot "+str77+"stat.gp";
 system((filestat).c_str());
-average_histogram(str77,statystyki,NUM_THREADS);
+average_histogram(str77,statystyki,NUM_THREADS,NUN_sub_probek);
 
 
   //auto gooo="cd "+str77+"/";
