@@ -397,8 +397,40 @@ void print_ele_of_vector(vector<int>& dane){
 void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S, int num_sub){
         vector<int> typki; while(NUM_THREADS_S >=1) {typki.push_back(NUM_THREADS_S); (NUM_THREADS_S <= 4) ? NUM_THREADS_S = NUM_THREADS_S - 1 : NUM_THREADS_S = NUM_THREADS_S / 2; }
         int num_of_typki=typki.size();
-print_ele_of_vector(typki);
-cout <<num_of_typki<<endl;
+//        print_ele_of_vector(typki);
+        cout <<num_of_typki<<endl;
+        cout<<num_sub<<endl; //ilosc watkow
+        cout <<SIZE_ARRAY<<endl;
+        //std::vector<vector <long int>> xdimV;
+        long int xdimV[num_of_typki][SIZE_ARRAY]={0};
+
+
+        for(statsy core : statystyki)
+                {//cout<<core.hist.size();
+
+                cout <<"test1"<<endl;
+                for(int pomiarki=0; pomiarki<num_of_typki; pomiarki++) {
+                    cout <<"test2"<<endl;
+                        if(core.return_watki()==typki[pomiarki]) {
+                            cout <<"test3"<<endl;
+                                for(int ipen=0; ipen<size_histogram; ipen++)
+                                {
+                                    cout <<"test4"<<endl;
+                                       xdimV[pomiarki][ipen]+=core.return_hist(ipen);
+                                        cout<< " " << core.return_watki() <<" "<<core.return_hist(ipen)<< " ";
+                                }
+                        }
+                }
+                }
+        //for(int pekla : core.hist)
+
+        //if (core.return_watki()==n)?(cout<< <<"");
+
+
+
+}
+//cout<<NUM_THREADS_S;
+//for (int i;<)
 // //        long int Parray[256][256];
 // vector< vector<long int> > Parray;
 // //print_ele_of_vector(typki);
@@ -428,7 +460,7 @@ cout <<num_of_typki<<endl;
 //         //printArray(Parray);
 
 
-}
+//}
 
 
 
@@ -620,4 +652,5 @@ int main ()
    9. Należy porównać czy wyniki są za każdym razem identyczne.
    10. Dane wyjściowe (histogram) powinny być za każdym razem zapisywane w
    oddzielnym pliku.
+
  */
