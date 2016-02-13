@@ -336,9 +336,52 @@ set key samplen 2 spacing 1 \n \
 set pointsize 4 \n \
 plot [0:256] for [col=2:"+kapibara+"] '"+filename+"STATS.csv'   using 1:(column(int(col))) w  points  title columnhead(col)\n\
 ";
+
+
         string_to_file(filename+"stat.gp", ploter);
 
 }
+void gnuplotoutput(string filename,string kapibara,string source)
+{
+        string ploter="reset \n \
+set term png truecolor \n \
+set datafile separator ' ' \n\
+set term png size 2900, 1000\n \
+set output \""+filename+"profit_line.png\" \n \
+set xlabel \"ZAKRES\" \n \
+set ylabel \"WARTOSCI\" \n \
+set grid \n \
+set boxwidth 1 relative \n \
+set key below \n \
+set key font \",20\" \n \
+set style fill transparent solid 1 \n \
+set key autotitle columnhead \n \
+set key samplen 2 spacing 1 \n \
+plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column(int(col))) w lines  title columnhead(col)\n \
+reset \n\
+set term png truecolor \n \
+set datafile separator ' ' \n \
+set term png size 2900, 1000 \n \
+set output \""+filename+"profit_pointers.png\" \n \
+set xlabel \"ZAKRES\" \n \
+set ylabel \"WARTOSCI \" \n \
+set grid \n \
+set boxwidth 1 relative \n \
+set key below \n \
+set key font \",20\" \n \
+set style fill transparent solid 1 \n \
+set key autotitle columnhead \n \
+set key samplen 2 spacing 1 \n \
+set pointsize 4 \n \
+plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column(int(col))) w  points  title columnhead(col)\n\
+";
+
+
+        string_to_file(filename+source+".gp", ploter);
+
+}
+
+
 
 void histograms_to_file(string str77,vector<statsy>& statystyki){
         for (int ipk=0; ipk<ilosc_przedzialow; ipk++)  {
@@ -373,6 +416,7 @@ void histograms_to_file(string str77,vector<statsy>& statystyki){
                 //cout << headers1.str();
                 string_to_file(str77+"STATS.csv",headers1.str());
         }
+
 }
 
 // void print_array(int n,int m,int arr[][n]){
@@ -394,7 +438,7 @@ void print_ele_of_vector(vector<int>& dane){
         }
 }
 
-void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S, int num_sub){
+void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S, int num_sub,string fname){
         vector<int> typki; while(NUM_THREADS_S >=1) {typki.push_back(NUM_THREADS_S); (NUM_THREADS_S <= 4) ? NUM_THREADS_S = NUM_THREADS_S - 1 : NUM_THREADS_S = NUM_THREADS_S / 2; }
         int num_of_typki=typki.size();
 //        print_ele_of_vector(typki);
@@ -406,23 +450,48 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
 
 
         for(statsy core : statystyki)
-                {//cout<<core.hist.size();
+        {        //cout<<core.hist.size();
 
-                cout <<"test1"<<endl;
+                //    cout <<"test1"<<endl;
                 for(int pomiarki=0; pomiarki<num_of_typki; pomiarki++) {
-                    cout <<"test2"<<endl;
+                        //cout <<"test2"<<endl;
                         if(core.return_watki()==typki[pomiarki]) {
-                            cout <<"test3"<<endl;
+                                //    cout <<"test3"<<endl;
                                 for(int ipen=0; ipen<size_histogram; ipen++)
                                 {
-                                    cout <<"test4"<<endl;
-                                       xdimV[pomiarki][ipen]+=core.return_hist(ipen);
-                                        cout<< " " << core.return_watki() <<" "<<core.return_hist(ipen)<< " ";
+                                        //        cout <<"test4"<<endl;
+                                        xdimV[pomiarki][ipen]+=core.return_hist(ipen);
+                                        //        cout<< " " << core.return_watki() <<" "<<core.return_hist(ipen)<< " ";
                                 }
                         }
                 }
-                }
+        }
+        //cout <<str77<<endl;
+        //cout<<endl;
+        for (int j = 0; j < size_histogram; ++j)
+        {
+                std::ostringstream danke;
+                if(j==0) {
 
+                        danke <<"N ";
+
+                        for(int bxc : typki) {
+                                danke <<bxc<<" ";
+                        }
+                        danke<<endl;
+                }
+                danke<<j+1<<" ";
+                for (int i = 0; i < num_of_typki; ++i)
+                {
+                        danke << xdimV[i][j] << ' ';
+                }
+                danke <<endl;
+                string_to_file(str77+fname,danke.str());
+                        }
+
+              gnuplotoutput(str77,to_string(num_of_typki+1),fname);
+
+}
 
 int main ()
 {
@@ -589,7 +658,7 @@ int main ()
         gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
         string filestat="gnuplot "+str77+"stat.gp";
         system((filestat).c_str());
-        average_histogram(str77,statystyki,NUM_THREADS,NUN_sub_probek);
+        average_histogram(str77,statystyki,NUM_THREADS,NUN_sub_probek,"average.csv");
 
 
         //auto gooo="cd "+str77+"/";
