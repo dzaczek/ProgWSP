@@ -422,46 +422,6 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                         }
                 }
                 }
-        //for(int pekla : core.hist)
-
-        //if (core.return_watki()==n)?(cout<< <<"");
-
-
-
-}
-//cout<<NUM_THREADS_S;
-//for (int i;<)
-// //        long int Parray[256][256];
-// vector< vector<long int> > Parray;
-// //print_ele_of_vector(typki);
-//         for (int ipk=0; ipk<ilosc_przedzialow; ipk++)  {
-//
-// //i=0;
-// //for (int jty : typki){
-// //for(int mik=0;mik<typki.size();mik++){
-//                 for(int mik=0; mik<typki.size(); mik++) {
-//                         for (statsy mrd : statystyki)
-//                         {
-//
-//
-//                                 if(mrd.return_watki()==typki[mik]) {Parray[ipk][mik]+=mrd.return_hist(ipk); }
-//
-//
-//
-//                         }
-//                         //vector<int> a = mrd.return_hist();
-//                         //cout <<a[1]<< endl;
-//                 }
-//
-// //}
-// //}
-// //i+=1;
-//         }
-//         //printArray(Parray);
-
-
-//}
-
 
 
 int main ()
