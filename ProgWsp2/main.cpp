@@ -44,7 +44,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long long int ilosc_losowan =400000; //4000000; //100000000;
+static long long int ilosc_losowan =8000000; //4000000; //100000000;
 static int zakres_liczb = 8192;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -52,8 +52,8 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
-static int NUM_THREADS = 64; //16384;
-int iloscprobek = 2;
+static int NUM_THREADS = 16384;
+static int iloscprobek =  100;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -340,6 +340,8 @@ plot [0:256] for [col=2:"+kapibara+"] '"+filename+"STATS.csv'   using 1:(column(
 
         string_to_file(filename+"stat.gp", ploter);
 
+
+
 }
 void gnuplotoutput(string filename,string kapibara,string source)
 {
@@ -347,7 +349,7 @@ void gnuplotoutput(string filename,string kapibara,string source)
 set term png truecolor \n \
 set datafile separator ' ' \n\
 set term png size 2900, 1000\n \
-set output \""+filename+"profit_line.png\" \n \
+set output \""+filename+""+source+"profit_line.png\" \n \
 set xlabel \"ZAKRES\" \n \
 set ylabel \"WARTOSCI\" \n \
 set grid \n \
@@ -362,7 +364,7 @@ reset \n\
 set term png truecolor \n \
 set datafile separator ' ' \n \
 set term png size 2900, 1000 \n \
-set output \""+filename+"profit_pointers.png\" \n \
+set output \""+filename+""+source+"profit_pointers.png\" \n \
 set xlabel \"ZAKRES\" \n \
 set ylabel \"WARTOSCI \" \n \
 set grid \n \
@@ -378,6 +380,9 @@ plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column
 
 
         string_to_file(filename+source+".gp", ploter);
+        string filestat="gnuplot "+filename+source+".gp";
+        system((filestat).c_str()); //na samym koncu duzo danych dla gnuplota
+
 
 }
 
@@ -447,27 +452,49 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
         cout <<SIZE_ARRAY<<endl;
         //std::vector<vector <long int>> xdimV;
         long int xdimV[num_of_typki][SIZE_ARRAY]={0};
-
-
+        long double timeV[num_of_typki]={0.000000};
+        int semafor=0;
         for(statsy core : statystyki)
         {        //cout<<core.hist.size();
 
-                //    cout <<"test1"<<endl;
+                //    cout <<"test1"<<endl;//
                 for(int pomiarki=0; pomiarki<num_of_typki; pomiarki++) {
-                        //cout <<"test2"<<endl;
+                        //    cout <<"        "<<typki[pomiarki]<<endl;
                         if(core.return_watki()==typki[pomiarki]) {
+                                semafor+=1;
+                                //    cout<< "thr: "<<core.return_watki()<<" time: " <<core.return_czas()<<endl;
+                                timeV[pomiarki]+=core.return_czas();
+
                                 //    cout <<"test3"<<endl;
                                 for(int ipen=0; ipen<size_histogram; ipen++)
                                 {
                                         //        cout <<"test4"<<endl;
                                         xdimV[pomiarki][ipen]+=core.return_hist(ipen);
                                         //        cout<< " " << core.return_watki() <<" "<<core.return_hist(ipen)<< " ";
+                                        //if(ipen==255){xdimV[pomiarki][ipen]=xdimV[pomiarki][ipen]/iloscprobek;cout<<"****done";}
+                                        //if(semafor==iloscprobek-1){xdimV[pomiarki][ipen]=xdimV[pomiarki][ipen]/iloscprobek;cout<<"****done";semafor=0;}
                                 }
+                                // if(pomiarki==num_of_typki-1){timeV[pomiarki]=timeV[pomiarki]/iloscprobek;}
                         }
+
                 }
         }
         //cout <<str77<<endl;
         //cout<<endl;
+
+        for (int ja = 0; ja < size_histogram; ++ja) {
+                for (int ia = 0; ia < num_of_typki; ++ia)
+                {
+                        xdimV[ia][ja]=xdimV[ia][ja]/iloscprobek;
+                }
+        }
+
+        for (int ia = 0; ia < num_of_typki; ia++)
+        {
+                cout <<typki[ia]<<": "<<timeV[ia]/iloscprobek<<" "<<endl;
+        }
+
+
         for (int j = 0; j < size_histogram; ++j)
         {
                 std::ostringstream danke;
@@ -487,10 +514,22 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                 }
                 danke <<endl;
                 string_to_file(str77+fname,danke.str());
-                        }
+        }
 
-              gnuplotoutput(str77,to_string(num_of_typki+1),fname);
+        gnuplotoutput(str77,to_string(num_of_typki+1),fname);
 
+}
+
+bool divider(int rotator){
+        bool x;
+        if ( iloscprobek<4 ||  (iloscprobek/4)==rotator || (iloscprobek/2)==rotator || rotator==1 || rotator==iloscprobek )
+        {
+                x=true;
+        }
+        else{
+                x=false;
+        }
+        return x;
 }
 
 int main ()
@@ -565,10 +604,11 @@ int main ()
                 }
                 string head = "|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist| TIME/CORE |NUM/THREADS|";
                 string head1 = ";THREADS;CORE TIME;Timestamp; Chrono ; Ele Hist; TIME/CORE ;NUM/THREADS;\n";
-
-                cout << "-----------------------------------------------------------------------" << endl;
-                cout << head << endl;
-                cout << "-----------------------------------------------------------------------" << endl;
+                if( divider(rotator)) {
+                        cout << "-----------------------------------------------------------------------" << endl;
+                        cout << head << endl;
+                        cout << "-----------------------------------------------------------------------" << endl;
+                }
                 string_to_file(str76 + "/STATS.csv", head1);
                 ////////////////////////////////////////////////////////////////////////////////////////////////////
                 while (NUM_THREADS_S >= 1)
@@ -609,8 +649,11 @@ int main ()
                         double diffcore = diffcores / NUM_THREADS_S;
                         int iloscnawatek = ilosc_losowan / NUM_THREADS_S;
                         //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
+
+                        if(divider(rotator)){
                         printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, createSumArray(histogram, SIZE_ARRAY), KNRM, diffcore, KBLU, iloscnawatek, KNRM);
                         cout << "-----------------------------------------------------------------------" << endl;
+                        }
                         std::ostringstream mydane;
 
                         mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << createSumArray(histogram, SIZE_ARRAY) << ";" << diffcore << ";" << iloscnawatek << ";\n";
@@ -656,10 +699,10 @@ int main ()
 
         histograms_to_file(str77,statystyki);
         gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
-        string filestat="gnuplot "+str77+"stat.gp";
-        system((filestat).c_str());
-        average_histogram(str77,statystyki,NUM_THREADS,NUN_sub_probek,"average.csv");
 
+        average_histogram(str77,statystyki,NUM_THREADS,NUN_sub_probek,"average.csv");
+        //    string filestat="gnuplot "+str77+"stat.gp";
+        //    system((filestat).c_str()); //na samym koncu duzo danych dla gnuplota
 
         //auto gooo="cd "+str77+"/";
         //system("cd str77");
