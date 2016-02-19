@@ -44,7 +44,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long long int ilosc_losowan =8000000; //4000000; //100000000;
+static long long int ilosc_losowan =80000000; //4000000; //100000000;
 static int zakres_liczb = 8192;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -53,7 +53,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 static int NUM_THREADS = 16384;
-static int iloscprobek =  100;
+static int iloscprobek =  1000;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -385,6 +385,33 @@ plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column
 
 
 }
+void anychart(string filename,string num_column,string typegraph)
+{
+        string ploter="reset \n \
+set term png truecolor \n \
+set datafile separator ' ' \n \
+set term png size 800, 600 \n \
+set output \""+filename+"_"+typegraph+".png\" \n \
+set ylabel \"czas [ms]  \" \n \
+set grid \n \
+set boxwidth 1 relative \n \
+set nokey  \n \
+set key font \",6\" \n \
+set style fill transparent solid 1 \n \
+set boxwidth 0.5 \n \
+set style fill solid 1.000000 border -1 \n \
+set bmargin 3 \n \
+set key autotitle columnhead \n \
+plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
+
+
+        string_to_file(filename+".gp", ploter);
+        string filestat="gnuplot "+filename+".gp";
+        system((filestat).c_str()); //na samym koncu duzo danych dla gnuplota
+
+
+}
+
 
 
 
@@ -489,11 +516,19 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                 }
         }
 
+
+        std::ostringstream masteroftime;
+        masteroftime<<"threads time"<<endl;
         for (int ia = 0; ia < num_of_typki; ia++)
         {
-                cout <<typki[ia]<<": "<<timeV[ia]/iloscprobek<<" "<<endl;
-        }
 
+                //    timeV[ia]=timeV[ia]/iloscprobek;
+                //cout <<typki[ia]<<": "<<timeV[ia]/iloscprobek<<" "<<endl;
+                masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<'\n';
+
+        }
+        string_to_file(str77+"AVERAGE_TIME.csv",masteroftime.str());
+        anychart(str77+"AVERAGE_TIME.csv", "2", "boxes");
 
         for (int j = 0; j < size_histogram; ++j)
         {
@@ -522,6 +557,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
 
 bool divider(int rotator){
         bool x;
+
         if ( iloscprobek<4 ||  (iloscprobek/4)==rotator || (iloscprobek/2)==rotator || rotator==1 || rotator==iloscprobek )
         {
                 x=true;
@@ -650,9 +686,9 @@ int main ()
                         int iloscnawatek = ilosc_losowan / NUM_THREADS_S;
                         //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
 
-                        if(divider(rotator)){
-                        printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, createSumArray(histogram, SIZE_ARRAY), KNRM, diffcore, KBLU, iloscnawatek, KNRM);
-                        cout << "-----------------------------------------------------------------------" << endl;
+                        if(divider(rotator)) {
+                                printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, createSumArray(histogram, SIZE_ARRAY), KNRM, diffcore, KBLU, iloscnawatek, KNRM);
+                                cout << "-----------------------------------------------------------------------" << endl;
                         }
                         std::ostringstream mydane;
 
