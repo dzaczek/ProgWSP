@@ -50,7 +50,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long long int ilosc_losowan =6000000; //100000000; //4000000; //100000000;
+static  long int ilosc_losowan =300000000; //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -59,7 +59,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 static int NUM_THREADS = 131072; //6553;
-static int iloscprobek =  3;
+static int iloscprobek =  2;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -398,7 +398,7 @@ plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column
 
 
 }
-void anychart(string filename,string num_column,string typegraph)
+void anychart(string filename,string num_column,string ilosc, string replay)
 {
 //         string ploter="reset \n \
 // set term png truecolor \n \
@@ -417,12 +417,14 @@ void anychart(string filename,string num_column,string typegraph)
 // set key autotitle columnhead \n \
 // plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
 string ploter="reset\n \
+set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentów od 0 do "+std::to_string(zakres_liczb)+" \\n ilosc prób "+replay+" \"  \n \
  set term png truecolor\n \
  set datafile separator ' '\n \
  set term png size 900,800 \n \
- set output \""+filename+"_"+typegraph+".png\" \n \
+ set output \""+filename+"_PLOT.png\" \n \
  set ylabel \"czas [ms]  \" \n \
 set xlabel \"Liczba wątków\" \n \
+set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:""\" font \",14\" \n \
  set grid \n \
  set xtics rotate \n \
  set nokey \n \
@@ -439,9 +441,9 @@ set ytics auto \n \
  set y2label \"% poprawnosci\" \n \
  set key autotitle columnhead \n \
  set bmargin 6 \n \
-set tmargin 3 \n \
+set tmargin  5\n \
  plot '"+filename+"' using 0:2:xtic(1) axes x1y1 w boxes t columnhead,  \\\n\
-	''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,8'   notitle, \\\n\
+	''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,9'   notitle, \\\n\
 	''	 using 0:3 axes x1y2  w lines t columnhead lt 2 lc rgb \"red\" lw 3 \n";
 
 
@@ -575,7 +577,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
         }
             cout << masteroftime.str();
         string_to_file(str77+"AVERAGE_TIME.csv",masteroftime.str());
-        anychart(str77+"AVERAGE_TIME.csv", "2", "boxes");
+        anychart(str77+"AVERAGE_TIME.csv", "2", std::to_string(ilosc_losowan), std::to_string(iloscprobek));
 
         for (int j = 0; j < size_histogram; ++j)
         {
