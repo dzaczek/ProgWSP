@@ -35,8 +35,14 @@ using namespace std;
 /*
    -*
    -*
-   -* g++ -std=c++17  zad2av2.cpp -pthread -g
-   -
+   g++ -std=c++17  zad2av2.cpp -pthread -g
+   ulimit -i  120000 albo unlimited
+   ulimit -s unlimited
+   unlimit -v ulimited
+    echo 120000 > /proc/sys/kernel/threads-max
+    echo 600000 > /proc/sys/vm/max_map_count
+    echo 200000 > /proc/sys/kernel/pid_max
+
  * -*
    -*
    -*/
@@ -44,16 +50,16 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long long int ilosc_losowan =80000000; //4000000; //100000000;
-static int zakres_liczb = 8192;
+static long long int ilosc_losowan =6000000; //100000000; //4000000; //100000000;
+static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
 //std::array <int,SIZE_ARRAY> histogram;
 int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
-static int NUM_THREADS = 16384;
-static int iloscprobek =  1000;
+static int NUM_THREADS = 131072; //6553;
+static int iloscprobek =  3;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -72,6 +78,12 @@ void set_watki(int numer){
 }
 void set_czas(double czas){
         czas_wykonywania=czas;
+}
+void set_sumnik(long int incik){
+        sumnik=incik;
+}
+long int  return_sumnik(){
+        return sumnik;
 }
 void set_hist(const std::vector<int>& v){
         hist=v;
@@ -103,6 +115,7 @@ int ilosc_watkow;
 double czas_wykonywania;
 vector<int>hist;
 int hist_sum;
+long int sumnik;
 
 
 
@@ -387,22 +400,50 @@ plot [0:256] for [col=2:"+kapibara+"] '"+filename+""+source+"'   using 1:(column
 }
 void anychart(string filename,string num_column,string typegraph)
 {
-        string ploter="reset \n \
-set term png truecolor \n \
-set datafile separator ' ' \n \
-set term png size 800, 600 \n \
-set output \""+filename+"_"+typegraph+".png\" \n \
-set ylabel \"czas [ms]  \" \n \
-set grid \n \
-set boxwidth 1 relative \n \
-set nokey  \n \
-set key font \",6\" \n \
-set style fill transparent solid 1 \n \
-set boxwidth 0.5 \n \
-set style fill solid 1.000000 border -1 \n \
-set bmargin 3 \n \
-set key autotitle columnhead \n \
-plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
+//         string ploter="reset \n \
+// set term png truecolor \n \
+// set datafile separator ' ' \n \
+// set term png size 800, 600 \n \
+// set output  \n \
+// set ylabel \"czas [ms]  \" \n \
+// set grid \n \
+// set boxwidth 1 relative \n \
+// set nokey  \n \
+// set key font \",6\" \n \
+// set style fill transparent solid 1 \n \
+// set boxwidth 0.5 \n \
+// set style fill solid 1.000000 border -1 \n \
+// set bmargin 3 \n \
+// set key autotitle columnhead \n \
+// plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
+string ploter="reset\n \
+ set term png truecolor\n \
+ set datafile separator ' '\n \
+ set term png size 900,800 \n \
+ set output \""+filename+"_"+typegraph+".png\" \n \
+ set ylabel \"czas [ms]  \" \n \
+set xlabel \"Liczba wątków\" \n \
+ set grid \n \
+ set xtics rotate \n \
+ set nokey \n \
+ set key font \",14\" \n \
+ set style fill transparent solid 1 \n \
+ set boxwidth 0.5 \n \
+ set style fill solid 1.000000 border -1 \n \
+ set bmargin 3 \n \
+set ytics auto \n \
+ set y2range [:100] \n \
+ set y2tics auto \n \
+ #set y2tics nomirror \n \
+ set ytics nomirror \n \
+ set y2label \"% poprawnosci\" \n \
+ set key autotitle columnhead \n \
+ set bmargin 6 \n \
+set tmargin 3 \n \
+ plot '"+filename+"' using 0:2:xtic(1) axes x1y1 w boxes t columnhead,  \\\n\
+	''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,8'   notitle, \\\n\
+	''	 using 0:3 axes x1y2  w lines t columnhead lt 2 lc rgb \"red\" lw 3 \n";
+
 
 
         string_to_file(filename+".gp", ploter);
@@ -480,6 +521,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
         //std::vector<vector <long int>> xdimV;
         long int xdimV[num_of_typki][SIZE_ARRAY]={0};
         long double timeV[num_of_typki]={0.000000};
+        long int bladV[num_of_typki]={0};
         int semafor=0;
         for(statsy core : statystyki)
         {        //cout<<core.hist.size();
@@ -491,7 +533,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                                 semafor+=1;
                                 //    cout<< "thr: "<<core.return_watki()<<" time: " <<core.return_czas()<<endl;
                                 timeV[pomiarki]+=core.return_czas();
-
+                                bladV[pomiarki]+=core.return_sumnik();
                                 //    cout <<"test3"<<endl;
                                 for(int ipen=0; ipen<size_histogram; ipen++)
                                 {
@@ -518,15 +560,20 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
 
 
         std::ostringstream masteroftime;
-        masteroftime<<"threads time"<<endl;
+        masteroftime<<"Wątki Czas&{1}Pracy '%&{1}Porawność'"<<endl;
         for (int ia = 0; ia < num_of_typki; ia++)
         {
 
                 //    timeV[ia]=timeV[ia]/iloscprobek;
                 //cout <<typki[ia]<<": "<<timeV[ia]/iloscprobek<<" "<<endl;
-                masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<'\n';
+                long int avg=bladV[ia]/iloscprobek;
+                //avg=avg*100;
+                //cout << avg/iloscprobek <<" "<< (float)avg/(float)iloscprobek<<endl;
+                double avg1= (avg/(double)ilosc_losowan)*100.0;
+                masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<' '<< std::fixed<<avg1<<'\n';
 
         }
+            cout << masteroftime.str();
         string_to_file(str77+"AVERAGE_TIME.csv",masteroftime.str());
         anychart(str77+"AVERAGE_TIME.csv", "2", "boxes");
 
@@ -684,19 +731,22 @@ int main ()
                         double diffcores = diffclock(begin, end);
                         double diffcore = diffcores / NUM_THREADS_S;
                         int iloscnawatek = ilosc_losowan / NUM_THREADS_S;
+                        long int sumnik=createSumArray(histogram, SIZE_ARRAY);
+
                         //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
 
                         if(divider(rotator)) {
-                                printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, createSumArray(histogram, SIZE_ARRAY), KNRM, diffcore, KBLU, iloscnawatek, KNRM);
+                                printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, sumnik, KNRM, diffcore, KBLU, iloscnawatek, KNRM);
                                 cout << "-----------------------------------------------------------------------" << endl;
                         }
                         std::ostringstream mydane;
 
-                        mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << createSumArray(histogram, SIZE_ARRAY) << ";" << diffcore << ";" << iloscnawatek << ";\n";
+                        mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << sumnik<< ";" << diffcore << ";" << iloscnawatek << ";\n";
 
                         s1=new statsy;
                         s1->set_pomiar(rotator);
                         s1->set_watki(NUM_THREADS_S);
+                        s1->set_sumnik(sumnik);
                         s1->set_czas(elapsed_seconds/1000000000);
                         vector<int>vhist;
                         auto it = vhist.begin();
