@@ -59,7 +59,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 static int NUM_THREADS = 131072; //6553;
-static int iloscprobek =  2;
+static int iloscprobek =  120;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
