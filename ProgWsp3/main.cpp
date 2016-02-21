@@ -8,7 +8,7 @@
 #include <string>
 #include <array>
 #include <cmath>
-
+#include <mutex>
 #include <time.h> //usun ze sleepami
 #include <unistd.h>
 
@@ -35,22 +35,29 @@ using namespace std;
 /*
    -*
    -*
-   g++ -std=c++17  zad2av2.cpp -pthread -g
-   ulimit -i  120000 albo unlimited
+   g++ -std=c++17  main.cpp -pthread -g
+   ulimit -i  1200000 #albo unlimited
    ulimit -s unlimited
    unlimit -v ulimited
-    echo 120000 > /proc/sys/kernel/threads-max
+    echo 1200000 > /proc/sys/kernel/threads-max
     echo 600000 > /proc/sys/vm/max_map_count
     echo 200000 > /proc/sys/kernel/pid_max
+    ulimit -i  1200000 #albo unlimited
+    ulimit -s unlimited
+    ulimit -v unlimited
+    ulimit -n unlimited
 
  * -*
    -*
    -*/
+
+std::mutex mnow;
+
 typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static  long int ilosc_losowan =300000000; //4000000; //100000000;
+static  long int ilosc_losowan =90000000; //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -58,8 +65,8 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
-static int NUM_THREADS = 512; //6553;
-static int iloscprobek =  2000;
+static int NUM_THREADS = 256;
+static int iloscprobek =  4;
 auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -154,6 +161,8 @@ struct thread_data
 
 void *THE_FUNCTION(void *threadarg)
 {
+        //mnow.lock();
+        std::lock_guard<std::mutex> lock(mnow);
         struct thread_data *my_data;
         my_data = (struct thread_data *) threadarg;
         int PRZEDZIAL_rozmiar = ilosc_losowan / my_data->ilosc_w;
@@ -181,6 +190,7 @@ void *THE_FUNCTION(void *threadarg)
 
                 }
         }
+        //mnow.unlock();
         //cout << "\t\tThread ID : " << my_data->thread_id<<endl ;
         //cout << "\t\t Message : " << my_data->ilosc_w << endl;
 
@@ -189,6 +199,7 @@ void *THE_FUNCTION(void *threadarg)
         //cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
         //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ;
         // pthread_exit(NULL);
+
 }
 
 //losujemy liczbe z zakresu
@@ -798,19 +809,3 @@ int main ()
         //system("gnuplot;reset;set term png truecolor;set term png size 1600, 400;set output 'profit_dots.png';set xlabel 'ZAKRES';set ylabel 'WARTOSCI';set grid;set boxwidth 1.95 relative;set style fill transparent solid 0.5 noborder;list=system('ls -1B *watek.txt | sort -h');plot for[file in list] file  using 1:2 w points  title  file; exit;");
         return 0;
 }
-
-/*
-   Należy zbudować aplikację obliczającą histogram tablicy bajtów o podanej specyfikacji:
-   1. Aplikacja działa sekwencyjnie lub tworzy 2,4,8,10,12,14,16 wątków.
-   2. Rozmiar tablicy musi być nie mniejszy niż 4 mln bajtów.
-   3. Tablica danych wejściowych do wszystkich prób powinna być identyczna, czyli musi
-   4. być zapisywana w pliku.
-   5. Elementy są zliczane bezpośrednio do wspólnej tabeli histogramu o wymiarach 256
-   6. pól typu integer.
-   7. Należy dokonać pomiarów uśrednionego czasu obliczenia histogramu dla każdej
-   8. opcji programu.
-   9. Należy porównać czy wyniki są za każdym razem identyczne.
-   10. Dane wyjściowe (histogram) powinny być za każdym razem zapisywane w
-   oddzielnym pliku.
-
- */
