@@ -9,6 +9,7 @@
 #include <array>
 #include <cmath>
 #include <mutex>
+#include <condition_variable>
 #include <time.h> //usun ze sleepami
 #include <unistd.h>
 
@@ -32,6 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
+#define MAX_NUM_TH    2
 /*
    -*
    -*
@@ -52,12 +54,12 @@ using namespace std;
    -*/
 
 std::mutex mnow;
-
+std::condition_variable cv;
 typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static  long int ilosc_losowan =90000000; //4000000; //100000000;
+static long int ilosc_losowan =10000000;  //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -65,13 +67,14 @@ vector<int>  vectorint;
 int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
-static int NUM_THREADS = 256;
-static int iloscprobek =  4;
-auto NUN_sub_probek=round(log2(NUM_THREADS)+2);
+static int NUM_THREADS = MAX_NUM_TH;
+static int iloscprobek =  2;
+static int NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
 char buffer[80];
-
+long int counter[MAX_NUM_TH]={0};
+long int counterV[]={0};
 
 class statsy
 {
@@ -161,36 +164,59 @@ struct thread_data
 
 void *THE_FUNCTION(void *threadarg)
 {
-        //mnow.lock();
-        std::lock_guard<std::mutex> lock(mnow);
+      mnow.lock();
+        //cout<<std::this_thread::get_id()<<" " <<&threadarg<<endl;
+
         struct thread_data *my_data;
         my_data = (struct thread_data *) threadarg;
+        counter[my_data->thread_id]+=1; //sprawdzenie tabeli
+        //std::lock_guard<std::mutex> lock(mnow);
+        counter[my_data->thread_id]+=1; //blokada tabeli
+        counter[my_data->thread_id]+=1;
+
+
+
         int PRZEDZIAL_rozmiar = ilosc_losowan / my_data->ilosc_w;
         int PRZEDZIAL_zakres_min = PRZEDZIAL_rozmiar * my_data->thread_id;
         int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
         int *wsk_array_hist;
         wsk_array_hist = histogram;
-        for (long long int sek = PRZEDZIAL_zakres_min; sek < PRZEDZIAL_zakres_maks; ++sek)
+        //cout<<<<endl;
+        for (long long int sek = PRZEDZIAL_zakres_min; sek <PRZEDZIAL_zakres_maks; sek++)
         {
 
 
-                long long numerprzedzialu = (vectorint[sek] * ilosc_przedzialow - 1) / zakres_liczb;
+                int  numerprzedzialu = (vectorint[sek] * (ilosc_przedzialow -1)) / zakres_liczb;
+                counter[my_data->thread_id]+=4;
+
                 //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
                 //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl;
                 //wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
                 if (numerprzedzialu < ilosc_przedzialow && numerprzedzialu >= 0) {
-                        wsk_array_hist[numerprzedzialu] = wsk_array_hist[numerprzedzialu] + 1;
+                //    mnow.lock();
 
+                     //sprawdzenie tabeli
+                    //    std::lock_guard<std::mutex> lock(mnow);
+                    //mnow.lock()
+                    counter[my_data->thread_id]+=1; //blokada tabeli
+                    //    std::unique_lock<std::Mutex> lk(mnow);
+                    //    cv.wait(lk);
+                        wsk_array_hist[numerprzedzialu]+=  1;
+                        counter[my_data->thread_id]+=3;
                         // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
                         // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
+                        //std::lock_guard<std::mutex> unlock(mnow);
+
+                        counter[my_data->thread_id]+=1;
                 }
                 else
                 {
                         cout << "numerprzedzialu ->" << numerprzedzialu;
 
                 }
+                 //zdjecie blokady
         }
-        //mnow.unlock();
+        mnow.unlock();
         //cout << "\t\tThread ID : " << my_data->thread_id<<endl ;
         //cout << "\t\t Message : " << my_data->ilosc_w << endl;
 
@@ -199,6 +225,7 @@ void *THE_FUNCTION(void *threadarg)
         //cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
         //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ;
         // pthread_exit(NULL);
+
 
 }
 
@@ -427,7 +454,7 @@ void anychart(string filename,string num_column,string ilosc, string replay)
 // set bmargin 3 \n \
 // set key autotitle columnhead \n \
 // plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
-string ploter="reset\n \
+        string ploter="reset\n \
 set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentów od 0 do "+std::to_string(zakres_liczb)+" \\n ilosc prób "+replay+" \"  \n \
  set term png truecolor\n \
  set datafile separator ' '\n \
@@ -435,7 +462,7 @@ set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentó
  set output \""+filename+"_PLOT.png\" \n \
  set ylabel \"czas [ms]  \" \n \
 set xlabel \"Liczba wątków\" \n \
-set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:""\" font \",14\" \n \
+set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:" "\" font \",14\" \n \
  set grid \n \
  set xtics rotate \n \
  set nokey \n \
@@ -586,7 +613,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                 masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<' '<< std::fixed<<avg1<<'\n';
 
         }
-            cout << masteroftime.str();
+        cout << masteroftime.str();
         string_to_file(str77+"AVERAGE_TIME.csv",masteroftime.str());
         anychart(str77+"AVERAGE_TIME.csv", "2", std::to_string(ilosc_losowan), std::to_string(iloscprobek));
 
@@ -628,6 +655,19 @@ bool divider(int rotator){
         return x;
 }
 
+void  clearcounter(){
+        for (int i; i<NUM_THREADS; i++) {
+                counter[i]=0;
+        }
+}
+
+long int sum_counter(int size){
+        long int sum;
+        for (int i; i<NUM_THREADS; i++) {
+                sum+=counter[i];
+        }
+        return sum;
+}
 int main ()
 {
 
@@ -709,6 +749,8 @@ int main ()
                 ////////////////////////////////////////////////////////////////////////////////////////////////////
                 while (NUM_THREADS_S >= 1)
                 {
+                    clearcounter();
+                        //    counter=0;
                         //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
                         clock_t begin = clock();
                         timestamp_t t0 = get_timestamp();
@@ -755,7 +797,10 @@ int main ()
                         std::ostringstream mydane;
 
                         mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << sumnik<< ";" << diffcore << ";" << iloscnawatek << ";\n";
-
+                        //        counterV[NUM_THREADS_S]=counter;
+                        //cout<<counter<<endl;
+                        //        cout<<counterV[NUM_THREADS_S]<<endl;
+                        cout<<sum_counter(NUM_THREADS_S)<<endl;
                         s1=new statsy;
                         s1->set_pomiar(rotator);
                         s1->set_watki(NUM_THREADS_S);
