@@ -33,7 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
-#define MAX_NUM_TH    2
+#define MAX_NUM_TH    3
 /*
    -*
    -*
@@ -59,7 +59,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long int ilosc_losowan =10000000;  //4000000; //100000000;
+static long int ilosc_losowan =22000000;  //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -164,7 +164,7 @@ struct thread_data
 
 void *THE_FUNCTION(void *threadarg)
 {
-      mnow.lock();
+
         //cout<<std::this_thread::get_id()<<" " <<&threadarg<<endl;
 
         struct thread_data *my_data;
@@ -177,31 +177,43 @@ void *THE_FUNCTION(void *threadarg)
 
 
         int PRZEDZIAL_rozmiar = ilosc_losowan / my_data->ilosc_w;
+        int pantf= ilosc_losowan % my_data->ilosc_w;
         int PRZEDZIAL_zakres_min = PRZEDZIAL_rozmiar * my_data->thread_id;
         int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
         int *wsk_array_hist;
         wsk_array_hist = histogram;
-        //cout<<<<endl;
+        cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
+        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
+        if (pantf>0 && (my_data->thread_id)==(my_data->ilosc_w)-1) {
+            cout<< "pfpfp";
+        }
+        else{
+            int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
+
+        }
+
         for (long long int sek = PRZEDZIAL_zakres_min; sek <PRZEDZIAL_zakres_maks; sek++)
         {
 
+                int numerprzedzialu = ((vectorint[sek] * ilosc_przedzialow -1 ) / zakres_liczb);
 
-                int  numerprzedzialu = (vectorint[sek] * (ilosc_przedzialow -1)) / zakres_liczb;
                 counter[my_data->thread_id]+=4;
 
                 //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
                 //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl;
                 //wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
-                if (numerprzedzialu < ilosc_przedzialow && numerprzedzialu >= 0) {
-                //    mnow.lock();
+                if (numerprzedzialu <ilosc_przedzialow && numerprzedzialu >= 0) {
+                        //    mnow.lock();
 
-                     //sprawdzenie tabeli
-                    //    std::lock_guard<std::mutex> lock(mnow);
-                    //mnow.lock()
-                    counter[my_data->thread_id]+=1; //blokada tabeli
-                    //    std::unique_lock<std::Mutex> lk(mnow);
-                    //    cv.wait(lk);
+                        //sprawdzenie tabeli
+                        //    std::lock_guard<std::mutex> lock(mnow);
+                        //mnow.lock()
+                        counter[my_data->thread_id]+=1; //blokada tabeli
+                        //    std::unique_lock<std::Mutex> lk(mnow);
+                        //    cv.wait(lk);
+                        mnow.lock();
                         wsk_array_hist[numerprzedzialu]+=  1;
+                        mnow.unlock();
                         counter[my_data->thread_id]+=3;
                         // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
                         // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
@@ -214,9 +226,9 @@ void *THE_FUNCTION(void *threadarg)
                         cout << "numerprzedzialu ->" << numerprzedzialu;
 
                 }
-                 //zdjecie blokady
+                //zdjecie blokady
         }
-        mnow.unlock();
+        //mnow.unlock();
         //cout << "\t\tThread ID : " << my_data->thread_id<<endl ;
         //cout << "\t\t Message : " << my_data->ilosc_w << endl;
 
@@ -749,7 +761,7 @@ int main ()
                 ////////////////////////////////////////////////////////////////////////////////////////////////////
                 while (NUM_THREADS_S >= 1)
                 {
-                    clearcounter();
+                        clearcounter();
                         //    counter=0;
                         //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
                         clock_t begin = clock();
