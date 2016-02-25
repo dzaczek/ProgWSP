@@ -33,7 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
-#define MAX_NUM_TH    3
+#define MAX_NUM_TH    256
 /*
    -*
    -*
@@ -59,7 +59,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long int ilosc_losowan =22000000;  //4000000; //100000000;
+static long int ilosc_losowan =100000000;  //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -167,6 +167,7 @@ void *THE_FUNCTION(void *threadarg)
 
         //cout<<std::this_thread::get_id()<<" " <<&threadarg<<endl;
 
+
         struct thread_data *my_data;
         my_data = (struct thread_data *) threadarg;
         counter[my_data->thread_id]+=1; //sprawdzenie tabeli
@@ -179,16 +180,19 @@ void *THE_FUNCTION(void *threadarg)
         int PRZEDZIAL_rozmiar = ilosc_losowan / my_data->ilosc_w;
         int pantf= ilosc_losowan % my_data->ilosc_w;
         int PRZEDZIAL_zakres_min = PRZEDZIAL_rozmiar * my_data->thread_id;
-        int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
+        //int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
         int *wsk_array_hist;
         wsk_array_hist = histogram;
-        cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
-        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
-        if (pantf>0 && (my_data->thread_id)==(my_data->ilosc_w)-1) {
-            cout<< "pfpfp";
+    //    cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
+//        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
+        int PRZEDZIAL_zakres_maks ;
+        if ((pantf>0) &&((my_data->thread_id)==(my_data->ilosc_w-1))) {
+            //cout<< "\n***************pfpfp****************\n";
+            PRZEDZIAL_zakres_maks = ilosc_losowan;
+
         }
         else{
-            int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
+                PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
 
         }
 
