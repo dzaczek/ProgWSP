@@ -33,7 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
-#define MAX_NUM_TH    256
+#define MAX_NUM_TH    32
 /*
    -*
    -*
@@ -59,7 +59,7 @@ typedef unsigned long long timestamp_t;
 
 static int ilosc_przedzialow = SIZE_ARRAY;
 static int size_histogram = SIZE_ARRAY;
-static long int ilosc_losowan =100000000;  //4000000; //100000000;
+static long int ilosc_losowan =6000000;  //4000000; //100000000;
 static int zakres_liczb = 16384;
 static int rozmiar_p = zakres_liczb / ilosc_losowan;
 vector<int>  vectorint;
@@ -73,9 +73,10 @@ static int NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
 char buffer[80];
-long int counter[MAX_NUM_TH]={0};
-long int counterV[]={0};
-
+long long int counter[MAX_NUM_TH];
+long long int counterV[100];
+std::vector<long long int> counterVE;
+//std::vector<long long int> counterV;
 class statsy
 {
 
@@ -170,10 +171,10 @@ void *THE_FUNCTION(void *threadarg)
 
         struct thread_data *my_data;
         my_data = (struct thread_data *) threadarg;
-        counter[my_data->thread_id]+=1; //sprawdzenie tabeli
+        //counter[my_data->thread_id]+=1; //sprawdzenie tabeli
         //std::lock_guard<std::mutex> lock(mnow);
-        counter[my_data->thread_id]+=1; //blokada tabeli
-        counter[my_data->thread_id]+=1;
+        //counter[my_data->thread_id]+=1; //blokada tabeli
+        //    counter[my_data->thread_id]+=1;
 
 
 
@@ -182,13 +183,17 @@ void *THE_FUNCTION(void *threadarg)
         int PRZEDZIAL_zakres_min = PRZEDZIAL_rozmiar * my_data->thread_id;
         //int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
         int *wsk_array_hist;
+         long long int* wsk_array_ele_io;
+         wsk_array_ele_io=&counter[my_data->thread_id];
         wsk_array_hist = histogram;
-    //    cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
+        //    cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
 //        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
-        int PRZEDZIAL_zakres_maks ;
+        int PRZEDZIAL_zakres_maks;
+
+        *wsk_array_ele_io+=1;//start thread
         if ((pantf>0) &&((my_data->thread_id)==(my_data->ilosc_w-1))) {
-            //cout<< "\n***************pfpfp****************\n";
-            PRZEDZIAL_zakres_maks = ilosc_losowan;
+                //cout<< "\n***************pfpfp****************\n";
+                PRZEDZIAL_zakres_maks = ilosc_losowan;
 
         }
         else{
@@ -201,7 +206,7 @@ void *THE_FUNCTION(void *threadarg)
 
                 int numerprzedzialu = ((vectorint[sek] * ilosc_przedzialow -1 ) / zakres_liczb);
 
-                counter[my_data->thread_id]+=4;
+                //    counter[my_data->thread_id]+=1;
 
                 //cout <<"\t\tID: " << my_data->thread_id<< " numerprzedzialu"  <<  numerprzedzialu<< endl;
                 //cout <<"\t\tID: " << my_data->thread_id<< " sek"  <<  sek<< endl;
@@ -212,18 +217,20 @@ void *THE_FUNCTION(void *threadarg)
                         //sprawdzenie tabeli
                         //    std::lock_guard<std::mutex> lock(mnow);
                         //mnow.lock()
-                        counter[my_data->thread_id]+=1; //blokada tabeli
-                        //    std::unique_lock<std::Mutex> lk(mnow);
-                        //    cv.wait(lk);
+                        ; //blokada tabeli
+                          //    std::unique_lock<std::Mutex> lk(mnow);
+                          //    cv.wait(lk);
+                        *wsk_array_ele_io+=1;
                         mnow.lock();
-                        wsk_array_hist[numerprzedzialu]+=  1;
+                        wsk_array_hist[numerprzedzialu]+=1;
+                        *wsk_array_ele_io+=1;
                         mnow.unlock();
-                        counter[my_data->thread_id]+=3;
+
                         // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
                         // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
                         //std::lock_guard<std::mutex> unlock(mnow);
 
-                        counter[my_data->thread_id]+=1;
+                        //counter[my_data->thread_id]+=1;
                 }
                 else
                 {
@@ -241,7 +248,7 @@ void *THE_FUNCTION(void *threadarg)
         //cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
         //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ;
         // pthread_exit(NULL);
-
+*wsk_array_ele_io+=1;//close trhread
 
 }
 
@@ -325,6 +332,16 @@ int createSumArray(int* arr, int size)
 
         return wynik;
 }
+
+
+void averageARRAY(long long int* arr, int size,int ils)
+{
+
+        for (int i = 0; i < size; i++)
+                arr[i]=arr[i]/ils;
+
+}
+
 
 double diffclock( clock_t clock2, clock_t clock1 ) {
 
@@ -563,7 +580,7 @@ void histograms_to_file(string str77,vector<statsy>& statystyki){
 
 void print_ele_of_vector(vector<int>& dane){
         for (int mrd : dane) {
-                cout <<mrd<<endl;
+                cout <<"***inF "<<mrd<<endl;
         }
 }
 
@@ -677,12 +694,15 @@ void  clearcounter(){
         }
 }
 
-long int sum_counter(int size){
-        long int sum;
-        for (int i; i<NUM_THREADS; i++) {
-                sum+=counter[i];
+long long sum_counter(int size){
+        long long int sumek=0;
+        for (int i; i<size; i++)
+        {
+
+                sumek+=counter[i];
+
         }
-        return sum;
+        return sumek;
 }
 int main ()
 {
@@ -763,8 +783,10 @@ int main ()
                 }
                 string_to_file(str76 + "/STATS.csv", head1);
                 ////////////////////////////////////////////////////////////////////////////////////////////////////
+                int semafori=0;
                 while (NUM_THREADS_S >= 1)
                 {
+
                         clearcounter();
                         //    counter=0;
                         //  cout<<"\t\t\t ***START THR***"<<" \tNR: "<<NUM_THREADS <<endl;
@@ -813,10 +835,16 @@ int main ()
                         std::ostringstream mydane;
 
                         mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << sumnik<< ";" << diffcore << ";" << iloscnawatek << ";\n";
-                        //        counterV[NUM_THREADS_S]=counter;
-                        //cout<<counter<<endl;
-                        //        cout<<counterV[NUM_THREADS_S]<<endl;
-                        cout<<sum_counter(NUM_THREADS_S)<<endl;
+                    //    for (int nbn=0; nbn<100; nbn++) cout<<"\tKPW"<<counter[nbn]<<endl;
+                        for (int iop=0; iop<NUM_THREADS_S; iop++) {counterV[semafori]+=counter[iop];}
+                        //counterV[semafori]=sum_counter(NUM_THREADS_S);
+                    //    cout<<semafori<<"\n KE: "<<counterV[semafori]<<(counterV[semafori]/(elapsed_seconds))<<endl;
+                            clearcounter();
+                        //for (int nbn=0;nbn<100;nbn++)cout<<"\tKPW"<<counter[nbn]<<endl;
+
+
+
+                        //clearcounter();
                         s1=new statsy;
                         s1->set_pomiar(rotator);
                         s1->set_watki(NUM_THREADS_S);
@@ -837,7 +865,7 @@ int main ()
                                 histogram[i] = '\0';
                         }
 
-
+                        semafori+=1;
                 }
 
         }
@@ -851,12 +879,19 @@ int main ()
         // cout <<isprint(timestart)<<endl;
 
         cout << "\t\t\t ***END***" << endl;
+
+        for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) counterV[ixiq]=counterV[ixiq]/iloscprobek;
+        for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<counterV[ixiq]<<endl;
+        //for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<1/(counterV[ixiq]/elapsed_seconds / 1000000000)<<endl;
+
 /*
+
 
    Globalne Statystyki
 
  */
 
+        //averageARRAY(counterV,NUN_sub_probek,iloscprobek);
         histograms_to_file(str77,statystyki);
         gnuplotoutput(str77,to_string(iloscprobek*NUN_sub_probek+1));
 
