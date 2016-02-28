@@ -184,15 +184,15 @@ void *THE_FUNCTION(void *threadarg)
         int PRZEDZIAL_zakres_min = PRZEDZIAL_rozmiar * my_data->thread_id;
         //int PRZEDZIAL_zakres_maks = PRZEDZIAL_zakres_min + PRZEDZIAL_rozmiar;
         int *wsk_array_hist;
-         long long int* wsk_array_ele_io;
-         wsk_array_ele_io=&counter[my_data->thread_id];
-         long long int ele_io=0;
+        long long int* wsk_array_ele_io;
+        wsk_array_ele_io=&counter[my_data->thread_id];
+        long long int ele_io=0;
         wsk_array_hist = histogram;
         //    cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
 //        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
         int PRZEDZIAL_zakres_maks;
 
-        ele_io+=1;//start thread
+        ele_io+=1; //start thread
         if ((pantf>0) &&((my_data->thread_id)==(my_data->ilosc_w-1))) {
                 //cout<< "\n***************pfpfp****************\n";
                 PRZEDZIAL_zakres_maks = ilosc_losowan;
@@ -223,11 +223,46 @@ void *THE_FUNCTION(void *threadarg)
                           //    std::unique_lock<std::Mutex> lk(mnow);
                           //    cv.wait(lk);
                         ele_io+=1;
-                        mnow.lock();
+
+
+
+
+
+                        //ele_io=ele_io+foo(wsk_array_hist,1);
+
+                        while(!mnow.try_lock())
+                        {
+                                ele_io+=2;
+                        }
+                        ele_io+=2;
                         wsk_array_hist[numerprzedzialu]+=1;
-                        ele_io+=1;
+
                         mnow.unlock();
 
+                        // if(mnow.try_lock()) {
+                        //
+                        //
+                        //         wsk_array_hist[numerprzedzialu]+=1;
+                        //         ele_io+=1;
+                        //         mnow.unlock();
+                        // }
+                        // else{
+                        //         mnow.lock();
+                        //         ele_io+=2;
+                        //         wsk_array_hist[numerprzedzialu]+=1;
+                        //
+                        //         mnow.unlock();
+                        // }
+
+
+
+
+
+
+
+
+
+                        //mnow.unlock();
                         // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
                         // cout << numerprzedzialu << " " << histogram[numerprzedzialu] << " "<< w0pk <<endl;
                         //std::lock_guard<std::mutex> unlock(mnow);
@@ -250,9 +285,25 @@ void *THE_FUNCTION(void *threadarg)
         //cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
         //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ;
         // pthread_exit(NULL);
-    std::lock_guard<std::mutex> lock(stats_io);
-*wsk_array_ele_io+=ele_io;//close trhread
+        std::lock_guard<std::mutex> lock(stats_io);
+        *wsk_array_ele_io+=ele_io; //close trhread
 
+}
+
+long long int recummmmm(long long int* wsk, long long int ei){
+        long long int eiko=ei;
+        eiko+=1;
+        if(mnow.try_lock()) {
+                //mnow.lock();
+
+                wsk+=1;
+                eiko+=1;
+                mnow.unlock();
+        }
+        else{
+                eiko=recummmmm(wsk,eiko);
+        }
+        return eiko;
 }
 
 //losujemy liczbe z zakresu
@@ -636,7 +687,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
 
 
         std::ostringstream masteroftime;
-        masteroftime<<"Wątki Czas&{1}Pracy '%&{1}Porawność'"<<endl;
+        masteroftime<<"Wątki Czas&{1}Pracy '%&{1}Porawność' 'I/O' 'SPRAWNOŚĆ'"<<endl;
         for (int ia = 0; ia < num_of_typki; ia++)
         {
 
@@ -646,7 +697,7 @@ void average_histogram(string str77,vector<statsy>& statystyki,int NUM_THREADS_S
                 //avg=avg*100;
                 //cout << avg/iloscprobek <<" "<< (float)avg/(float)iloscprobek<<endl;
                 double avg1= (avg/(double)ilosc_losowan)*100.0;
-                masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<' '<< std::fixed<<avg1<<'\n';
+                masteroftime<<typki[ia]<<' '<<timeV[ia]/iloscprobek<<' '<< std::fixed<<avg1<<' '<<counterV[ia]<<' '<<counterV[ia]/(timeV[ia]/iloscprobek)<<'\n';
 
         }
         cout << masteroftime.str();
@@ -692,7 +743,7 @@ bool divider(int rotator){
 }
 
 void  clearcounter(){
-        for (int i; i<NUM_THREADS; i++) {
+        for (int i=0; i<NUM_THREADS; i++) {
                 counter[i]=0;
         }
 }
@@ -777,8 +828,8 @@ int main ()
 
 
                 }
-                string head = "|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist| TIME/CORE |NUM/THREADS|";
-                string head1 = ";THREADS;CORE TIME;Timestamp; Chrono ; Ele Hist; TIME/CORE ;NUM/THREADS;\n";
+                string head = "|THREADS|CORE TIME|Timestamp| Chrono | Ele Hist|    I/O    |NUM/THREADS|";
+                string head1 = ";THREADS;CORE TIME;Timestamp; Chrono ; Ele Hist; I/O;NUM/THREADS;\n";
                 if( divider(rotator)) {
                         cout << "-----------------------------------------------------------------------" << endl;
                         cout << head << endl;
@@ -797,6 +848,8 @@ int main ()
                         timestamp_t t0 = get_timestamp();
                         auto start = std::chrono::steady_clock::now();
                         for ( i = 0; i < NUM_THREADS_S; i++ ) {
+                                //////long long int (*foo)(long long int)(long long int);
+                                //////foo=&recummmmm();
                                 //cout <<"main() : creating thread, " << i << endl;
                                 td[i].thread_id = i;
                                 td[i].ilosc_w = NUM_THREADS_S;
@@ -828,21 +881,25 @@ int main ()
                         double diffcore = diffcores / NUM_THREADS_S;
                         int iloscnawatek = ilosc_losowan / NUM_THREADS_S;
                         long int sumnik=createSumArray(histogram, SIZE_ARRAY);
+                        long long int mikrocounter=0;
+                        for (int iop=0; iop<NUM_THREADS_S; iop++) {mikrocounter+=counter[iop]; }
+                        clearcounter();
+                        counterV[semafori]+=mikrocounter;
+                        long long int pekele=mikrocounter;
 
                         //cout<< "|"<<NUM_THREADS <<"|"<<diffclock(begin,end)<<"|"<< secs<<"|"<<elapsed_seconds<<"|"<< createSumArray(histogram,SIZE_ARRAY) <<"|"<<endl;
 
                         if(divider(rotator)) {
-                                printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11f|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, sumnik, KNRM, diffcore, KBLU, iloscnawatek, KNRM);
+                                printf("|%7d|%9f|%9f|%s%5f%s|%s%9d%s|%11d|%s%11u%s|\n", NUM_THREADS_S, diffcores, secs, KGRN, elapsed_seconds / 1000000000, KNRM, KBLU, sumnik, KNRM, pekele, KBLU, iloscnawatek, KNRM);
                                 cout << "-----------------------------------------------------------------------" << endl;
                         }
                         std::ostringstream mydane;
 
-                        mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << sumnik<< ";" << diffcore << ";" << iloscnawatek << ";\n";
-                    //    for (int nbn=0; nbn<100; nbn++) cout<<"\tKPW"<<counter[nbn]<<endl;
-                        for (int iop=0; iop<NUM_THREADS_S; iop++) {counterV[semafori]+=counter[iop];}
+                        mydane << ";" << NUM_THREADS_S << ";" << diffcores << ";" << secs << ";" << elapsed_seconds / 1000000000 << ";" << sumnik<< ";" <<pekele<< ";" << iloscnawatek << ";\n";
+                        //    for (int nbn=0; nbn<100; nbn++) cout<<"\tKPW"<<counter[nbn]<<endl;
+                        //    cout <<counterV[semafori]<<endl;
                         //counterV[semafori]=sum_counter(NUM_THREADS_S);
-                       cout<<semafori<<"\n KE: "<<counterV[semafori]<<(counterV[semafori]/(elapsed_seconds/1000000000))<<endl;
-                            clearcounter();
+                        //cout<<semafori<<"\n KE: "<<counterV[semafori]<<(counterV[semafori]/(elapsed_seconds/1000000000))<<endl;
                         //for (int nbn=0;nbn<100;nbn++)cout<<"\tKPW"<<counter[nbn]<<endl;
 
 
@@ -884,7 +941,7 @@ int main ()
         cout << "\t\t\t ***END***" << endl;
 
         for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) counterV[ixiq]=counterV[ixiq]/iloscprobek;
-        for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<counterV[ixiq]<<endl;
+        for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<counterV[ixiq]<<" "<<ixiq<<endl;
         //for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<1/(counterV[ixiq]/elapsed_seconds / 1000000000)<<endl;
 
 /*
