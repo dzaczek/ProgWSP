@@ -33,7 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
-#define MAX_NUM_TH    32
+#define MAX_NUM_TH    128
 /*
    -*
    -*
@@ -69,7 +69,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 static int NUM_THREADS = MAX_NUM_TH;
-static int iloscprobek =  2;
+static int iloscprobek =  10;
 static int NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -541,35 +541,94 @@ void anychart(string filename,string num_column,string ilosc, string replay)
 // set bmargin 3 \n \
 // set key autotitle columnhead \n \
 // plot '"+filename+"'    using 0:"+num_column+":xtic(1) w "+typegraph+" title columnhead,    ''          using 0:2:2 with labels  rotate by -90  font   'arial,14' tc lt 5 notitle";
-        string ploter="reset\n \
-set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentów od 0 do "+std::to_string(zakres_liczb)+" \\n ilosc prób "+replay+" \"  \n \
- set term png truecolor\n \
- set datafile separator ' '\n \
- set term png size 900,800 \n \
- set output \""+filename+"_PLOT.png\" \n \
- set ylabel \"czas [ms]  \" \n \
-set xlabel \"Liczba wątków\" \n \
-set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:" "\" font \",14\" \n \
- set grid \n \
- set xtics rotate \n \
- set nokey \n \
- set key font \",14\" \n \
- set style fill transparent solid 1 \n \
- set boxwidth 0.5 \n \
- set style fill solid 1.000000 border -1 \n \
- set bmargin 3 \n \
-set ytics auto \n \
- set y2range [:100] \n \
- set y2tics auto \n \
- #set y2tics nomirror \n \
- set ytics nomirror \n \
- set y2label \"% poprawnosci\" \n \
- set key autotitle columnhead \n \
- set bmargin 6 \n \
-set tmargin  5\n \
- plot '"+filename+"' using 0:2:xtic(1) axes x1y1 w boxes t columnhead,  \\\n\
-	''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,9'   notitle, \\\n\
-	''	 using 0:3 axes x1y2  w lines t columnhead lt 2 lc rgb \"red\" lw 3 \n";
+//         string ploter="reset\n \
+// set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentów od 0 do "+std::to_string(zakres_liczb)+" \\n ilosc prób "+replay+" \"  \n \
+//  set term png truecolor\n \
+//  set datafile separator ' '\n \
+//  set term png size 900,800 \n \
+//  set output \""+filename+"_PLOT.png\" \n \
+//  set ylabel \"czas [ms]  \" \n \
+// set xlabel \"Liczba wątków\" \n \
+// set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:" "\" font \",14\" \n \
+//  set grid \n \
+//  set xtics rotate \n \
+//  set nokey \n \
+//  set key font \",14\" \n \
+//  set style fill transparent solid 1 \n \
+//  set boxwidth 0.5 \n \
+//  set style fill solid 1.000000 border -1 \n \
+//  set bmargin 3 \n \
+// set ytics auto \n \
+//  set y2range [:100] \n \
+//  set y2tics auto \n \
+//  #set y2tics nomirror \n \
+//  set ytics nomirror \n \
+//  set y2label \"% poprawnosci\" \n \
+//  set key autotitle columnhead \n \
+//  set bmargin 6 \n \
+// set tmargin  5\n \
+//  plot '"+filename+"' using 0:2:xtic(1) axes x1y1 w boxes t columnhead,  \\\n\
+// 	''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,9'   notitle, \\\n\
+// 	''	 using 0:3 axes x1y2  w lines t columnhead lt 2 lc rgb \"red\" lw 3 \n";
+
+
+
+
+
+string ploter="reset \n \
+    set title \"{/=20 Uśredniony czas pracy } \\n Rozmiar Zbioru "+ilosc+"  elentów od 0 do "+std::to_string(zakres_liczb)+" \\n ilosc prób "+replay+" \"  \n \
+    set term png truecolor\n \
+      set datafile separator ' '  \n \
+      set term png size 1920,1080  \n \
+      set output \"PLOT.png\"  \n \
+     set xlabel \"Liczba wątków\"  \n \
+     set origin 0,0 \n \
+     set multiplot \n \
+     set size 1,0.5 \n \
+     set origin 0,0.5 \n \
+     set label 11 center at graph 0.5,char 1 \" \\nRozmiar zbioru:" "\" font \",14\" \n \
+      set grid \n \
+      set xtics rotate \n \
+      set nokey  \n \
+      set key font \",14\" \n \
+    #  set style fill transparent solid 1 \n \
+      set boxwidth 0.5  \n \
+     # set style fill solid 0.500000 border -1  \n \
+      set bmargin 3 \n \
+     set ytics auto \n \
+      set y2range [:100] \n \
+      set y2tics auto \n \
+      #set y2tics nomirror\n \
+      set ytics nomirror \n \
+      set ylabel \"czas [ms]  \" \n \
+      set y2label \"% poprawnosci\" \n \
+      set key autotitle columnhead \n \
+     set bmargin 6 \n \
+     set tmargin  5 \n \
+      plot '"+filename+"' using 0:2:xtic(1) axes x1y1 w boxes t columnhead,  \\\n\
+        ''       using 0:2:2 with labels  rotate by -90 offset -0,+1  font   'arial,9'   notitle, \\\n\
+        ''   using 0:3 axes x1y2  w lines t columnhead lt 2 lc rgb \"red\" lw 3 \n \
+    set size 1,0.5 \n \
+    set origin 0,0 \n \
+    set boxwidth 0.5 \n \
+    set ytics auto \n \
+    set y2tics \n \
+    set y2tics  auto \n \
+    set autoscale y2 \n \
+    set ytics nomirror \n \
+    set xlabel \"Wątki\" \n \
+    set ylabel \"Czas\" \n \
+    set y2label \"I/0\" \n \
+       plot  '"+filename+"'  using 0:2:xtic(1) axes x1y1  w boxes  t columnhead, \\\n \
+             '' using 0:4 axes x1y2 w lines lc rgb \"forest-green\" lw 8 t columnhead";
+
+
+
+
+
+
+
+
 
 
 
@@ -941,7 +1000,7 @@ int main ()
         cout << "\t\t\t ***END***" << endl;
 
         for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) counterV[ixiq]=counterV[ixiq]/iloscprobek;
-        for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<counterV[ixiq]<<" "<<ixiq<<endl;
+        //for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<counterV[ixiq]<<" "<<ixiq<<endl;
         //for(int ixiq=0; ixiq<NUN_sub_probek; ixiq++) cout<<"\t\t"<<1/(counterV[ixiq]/elapsed_seconds / 1000000000)<<endl;
 
 /*
