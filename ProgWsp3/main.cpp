@@ -54,6 +54,7 @@ using namespace std;
    -*/
 
 std::mutex mnow;
+std::mutex stats_io;
 std::condition_variable cv;
 typedef unsigned long long timestamp_t;
 
@@ -185,12 +186,13 @@ void *THE_FUNCTION(void *threadarg)
         int *wsk_array_hist;
          long long int* wsk_array_ele_io;
          wsk_array_ele_io=&counter[my_data->thread_id];
+         long long int ele_io=0;
         wsk_array_hist = histogram;
         //    cout<<pantf<< " "<<ilosc_losowan <<" "<< my_data->ilosc_w<<endl;
 //        cout<<my_data->thread_id<<"="<<my_data->ilosc_w-1<<endl;
         int PRZEDZIAL_zakres_maks;
 
-        *wsk_array_ele_io+=1;//start thread
+        ele_io+=1;//start thread
         if ((pantf>0) &&((my_data->thread_id)==(my_data->ilosc_w-1))) {
                 //cout<< "\n***************pfpfp****************\n";
                 PRZEDZIAL_zakres_maks = ilosc_losowan;
@@ -220,10 +222,10 @@ void *THE_FUNCTION(void *threadarg)
                         ; //blokada tabeli
                           //    std::unique_lock<std::Mutex> lk(mnow);
                           //    cv.wait(lk);
-                        *wsk_array_ele_io+=1;
+                        ele_io+=1;
                         mnow.lock();
                         wsk_array_hist[numerprzedzialu]+=1;
-                        *wsk_array_ele_io+=1;
+                        ele_io+=1;
                         mnow.unlock();
 
                         // wsk_array_hist[numerprzedzialu]=wsk_array_hist[numerprzedzialu]+1;
@@ -248,7 +250,8 @@ void *THE_FUNCTION(void *threadarg)
         //cout << "\t\tilosc_przedzialow->"<<ilosc_przedzialow<<endl;
         //cout <<  "\t\t przyklad waetosci z zakresu" << histogram[PRZEDZIAL_zakres_min] <<endl ;
         // pthread_exit(NULL);
-*wsk_array_ele_io+=1;//close trhread
+    std::lock_guard<std::mutex> lock(stats_io);
+*wsk_array_ele_io+=ele_io;//close trhread
 
 }
 
@@ -838,7 +841,7 @@ int main ()
                     //    for (int nbn=0; nbn<100; nbn++) cout<<"\tKPW"<<counter[nbn]<<endl;
                         for (int iop=0; iop<NUM_THREADS_S; iop++) {counterV[semafori]+=counter[iop];}
                         //counterV[semafori]=sum_counter(NUM_THREADS_S);
-                    //    cout<<semafori<<"\n KE: "<<counterV[semafori]<<(counterV[semafori]/(elapsed_seconds))<<endl;
+                       cout<<semafori<<"\n KE: "<<counterV[semafori]<<(counterV[semafori]/(elapsed_seconds/1000000000))<<endl;
                             clearcounter();
                         //for (int nbn=0;nbn<100;nbn++)cout<<"\tKPW"<<counter[nbn]<<endl;
 
