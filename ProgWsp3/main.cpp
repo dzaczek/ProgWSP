@@ -33,7 +33,7 @@ using namespace std;
 #define KWHT  "\x1B[37m"
 
 #define SIZE_ARRAY    256
-#define MAX_NUM_TH    128
+#define MAX_NUM_TH    20000
 /*
    -*
    -*
@@ -69,7 +69,7 @@ int histogram[SIZE_ARRAY];
 
 string filename_data = "orginal.txt";
 static int NUM_THREADS = MAX_NUM_TH;
-static int iloscprobek =  10;
+static int iloscprobek =  1;
 static int NUN_sub_probek=round(log2(NUM_THREADS)+2);
 time_t rawtime;
 struct tm * timeinfo;
@@ -352,10 +352,10 @@ bool check_if_file_exist(string filename)
 void tworzHistogram()
 {
         //tworzy zawsze poprawny histogram pojedynczy przebieg
-        int rozmiar_p = zakres_liczb / ilosc_losowan;
+        //int rozmiar_p = zakres_liczb / ilosc_losowan;
 
-        int w0pk;
-        int b;
+    //    int w0pk;
+        //int b;
 
         for (auto w0pk : vectorint)
         {
@@ -580,7 +580,7 @@ string ploter="reset \n \
     set term png truecolor\n \
       set datafile separator ' '  \n \
       set term png size 1920,1080  \n \
-      set output \"PLOT.png\"  \n \
+       set output \""+filename+"_PLOT.png\" \n \
      set xlabel \"Liczba wątków\"  \n \
      set origin 0,0 \n \
      set multiplot \n \
@@ -867,7 +867,7 @@ int main ()
                 string str76 = str77 + "_" + to_string(rotator);
                 int NUM_THREADS_S=NUM_THREADS;
 
-                char str75[21];
+            //    char str75[21];
                 // size_t length = str76.copy(str75, str76.length());
                 //cout << "length" << length << endl;
                 // str75[length] = "\0";
